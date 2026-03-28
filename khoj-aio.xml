@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>khoj-aio</Name>
+  <Repository>ghcr.io/jsonbored/khoj-aio:latest</Repository>
+  <Registry>https://ghcr.io/jsonbored/khoj-aio</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/JSONbored/khoj-aio/issues</Support>
+  <Project>https://github.com/JSONbored/khoj-aio</Project>
+  <Overview>Khoj is a self-hosted AI second brain for chatting with your docs, the web, and local or hosted LLMs.&#xD;
+[center][b][color=#ff8c00]JSONbored Verified AIO Template[/color][/b][/center]
+
+This Unraid AIO template focuses on the simplest safe first-run possible. It wraps upstream Khoj into a single-container deployment with an internally managed PostgreSQL database by default, while still exposing advanced overrides for power users.&#xD;
+&#xD;
+[b]All-In-One (AIO) Edition[/b]&#xD;
+No manual docker-compose conversion. No required external PostgreSQL setup. No extra sidecar container just to get the UI up. Install it, optionally set credentials, and go.&#xD;
+&#xD;
+[b]Initial Setup:[/b]&#xD;
+1. Optionally set your Admin Email, Admin Password, and Django Secret Key below.&#xD;
+2. If you leave the password or secret blank, secure values will be generated automatically on first boot and saved in your mapped config folder under `/root/.khoj/aio/generated.env`.&#xD;
+3. Click Apply and wait for the logs to show Khoj is ready.&#xD;
+4. Restart the container once after first boot so all settings are applied cleanly.</Overview>
+  <Category>AI: Productivity: Tools:</Category>
+  <WebUI>http://[IP]:[PORT:42110]</WebUI>
+  <TemplateURL>https://github.com/JSONbored/khoj-aio/raw/main/khoj-aio.xml</TemplateURL>
+  <Icon>https://avatars.githubusercontent.com/u/104011870?s=200&amp;v=4</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Description/>
+  <Networking>
+    <Mode>bridge</Mode>
+    <Publish>
+      <Port>
+        <HostPort>42110</HostPort>
+        <ContainerPort>42110</ContainerPort>
+        <Protocol>tcp</Protocol>
+      </Port>
+    </Publish>
+  </Networking>
+  <Data>
+    <Volume>
+      <HostDir>/mnt/user/appdata/khoj-aio/config</HostDir>
+      <ContainerDir>/root/.khoj</ContainerDir>
+      <Mode>rw</Mode>
+    </Volume>
+    <Volume>
+      <HostDir>/mnt/user/appdata/khoj-aio/postgres</HostDir>
+      <ContainerDir>/var/lib/postgresql/data</ContainerDir>
+      <Mode>rw</Mode>
+    </Volume>
+    <Volume>
+      <HostDir>/mnt/user/appdata/khoj-aio/models/huggingface</HostDir>
+      <ContainerDir>/root/.cache/huggingface</ContainerDir>
+      <Mode>rw</Mode>
+    </Volume>
+    <Volume>
+      <HostDir>/mnt/user/appdata/khoj-aio/models/sentence-transformers</HostDir>
+      <ContainerDir>/root/.cache/torch/sentence_transformers</ContainerDir>
+      <Mode>rw</Mode>
+    </Volume>
+  </Data>
+  <Environment/>
+
+  <Config Name="Web UI Port" Target="42110" Default="42110" Mode="tcp" Description="The main Khoj web interface port." Type="Port" Display="always" Required="true" Mask="false">42110</Config>
+  <Config Name="AppData - Khoj Config" Target="/root/.khoj" Default="/mnt/user/appdata/khoj-aio/config" Mode="rw" Description="Stores generated credentials, uploads, and Khoj configuration." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/khoj-aio/config</Config>
+  <Config Name="AppData - PostgreSQL Data" Target="/var/lib/postgresql/data" Default="/mnt/user/appdata/khoj-aio/postgres" Mode="rw" Description="Internal PostgreSQL database storage for the AIO deployment." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/khoj-aio/postgres</Config>
+  <Config Name="Admin Email" Target="KHOJ_ADMIN_EMAIL" Default="admin@khoj.local" Mode="" Description="Admin login email for the Khoj admin panel. You can change it later." Type="Variable" Display="always" Required="false" Mask="false">admin@khoj.local</Config>
+  <Config Name="Admin Password" Target="KHOJ_ADMIN_PASSWORD" Default="" Mode="" Description="Optional. Leave blank to auto-generate a secure admin password on first boot and save it in the mapped config folder." Type="Variable" Display="always" Required="false" Mask="true"/>
+  <Config Name="Django Secret Key" Target="KHOJ_DJANGO_SECRET_KEY" Default="" Mode="" Description="Optional but recommended. Leave blank to auto-generate a secure secret key on first boot." Type="Variable" Display="always" Required="false" Mask="true"/>
+  <Config Name="Anonymous Mode" Target="KHOJ_ANONYMOUS_MODE" Default="true" Mode="" Description="Default beginner mode. Set to false if you want sign-in and multi-user behavior." Type="Variable" Display="always" Required="true" Mask="false">true</Config>
+
+  <Config Name="AppData - HuggingFace Cache" Target="/root/.cache/huggingface" Default="/mnt/user/appdata/khoj-aio/models/huggingface" Mode="rw" Description="Persistent cache for Hugging Face downloads and model assets." Type="Path" Display="advanced" Required="true" Mask="false">/mnt/user/appdata/khoj-aio/models/huggingface</Config>
+  <Config Name="AppData - SentenceTransformer Cache" Target="/root/.cache/torch/sentence_transformers" Default="/mnt/user/appdata/khoj-aio/models/sentence-transformers" Mode="rw" Description="Persistent cache for SentenceTransformer embeddings and related model files." Type="Path" Display="advanced" Required="true" Mask="false">/mnt/user/appdata/khoj-aio/models/sentence-transformers</Config>
+  <Config Name="Use Internal PostgreSQL" Target="KHOJ_USE_INTERNAL_POSTGRES" Default="true" Mode="" Description="Default single-container mode. Set to false only if you are intentionally using an external PostgreSQL database." Type="Variable" Display="advanced" Required="true" Mask="false">true</Config>
+  <Config Name="Bind Host" Target="KHOJ_HOST" Default="0.0.0.0" Mode="" Description="Container bind address. Leave at 0.0.0.0 for standard Unraid bridge networking." Type="Variable" Display="advanced" Required="false" Mask="false">0.0.0.0</Config>
+  <Config Name="Non-Interactive Startup" Target="KHOJ_NON_INTERACTIVE" Default="true" Mode="" Description="Recommended for unattended container startup." Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+  <Config Name="Extra CLI Args" Target="KHOJ_EXTRA_ARGS" Default="" Mode="" Description="Optional extra arguments appended to the Khoj startup command." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="[External DB] PostgreSQL Host" Target="POSTGRES_HOST" Default="" Mode="" Description="Optional external PostgreSQL host. Setting this effectively bypasses embedded DB mode." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="[External DB] PostgreSQL Port" Target="POSTGRES_PORT" Default="5432" Mode="" Description="External PostgreSQL port." Type="Variable" Display="advanced" Required="false" Mask="false">5432</Config>
+  <Config Name="[External DB] PostgreSQL Database" Target="POSTGRES_DB" Default="postgres" Mode="" Description="External PostgreSQL database name." Type="Variable" Display="advanced" Required="false" Mask="false">postgres</Config>
+  <Config Name="[External DB] PostgreSQL User" Target="POSTGRES_USER" Default="postgres" Mode="" Description="External PostgreSQL username." Type="Variable" Display="advanced" Required="false" Mask="false">postgres</Config>
+  <Config Name="[External DB] PostgreSQL Password" Target="POSTGRES_PASSWORD" Default="" Mode="" Description="External PostgreSQL password." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+
+  <Config Name="[AI] OpenAI API Key" Target="OPENAI_API_KEY" Default="" Mode="" Description="API key for OpenAI-compatible cloud deployments using OpenAI itself." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="[AI] Anthropic API Key" Target="ANTHROPIC_API_KEY" Default="" Mode="" Description="Optional Anthropic API key for Claude models." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="[AI] Gemini API Key" Target="GEMINI_API_KEY" Default="" Mode="" Description="Optional Gemini API key for Google Gemini models." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="[AI] OpenAI-Compatible Base URL" Target="OPENAI_BASE_URL" Default="" Mode="" Description="Use this for Ollama, vLLM, LocalAI, LiteLLM, or any OpenAI-compatible endpoint. Example: http://your-ollama-host:11434/v1/." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="[AI] Default Chat Model" Target="KHOJ_DEFAULT_CHAT_MODEL" Default="" Mode="" Description="Optional default chat model name for compatible endpoints. Example: llama3.1." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="[AI] Debug Mode" Target="KHOJ_DEBUG" Default="False" Mode="" Description="Optional. Set to True only when troubleshooting with more verbose upstream debug behavior." Type="Variable" Display="advanced" Required="false" Mask="false">False</Config>
+
+  <Config Name="[Search] External SearxNG URL" Target="KHOJ_SEARXNG_URL" Default="" Mode="" Description="Optional SearxNG endpoint for built-in web search. Example: http://192.168.1.20:8080." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="[Search] Serper API Key" Target="SERPER_DEV_API_KEY" Default="" Mode="" Description="Optional paid web-search API key from Serper." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="[Search] OloStep API Key" Target="OLOSTEP_API_KEY" Default="" Mode="" Description="Optional webpage-read API key from OloStep." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="[Search] Firecrawl API Key" Target="FIRECRAWL_API_KEY" Default="" Mode="" Description="Optional Firecrawl API key for web search and read flows." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="[Search] Exa API Key" Target="EXA_API_KEY" Default="" Mode="" Description="Optional Exa API key for search and webpage reading." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+
+  <Config Name="[Code] Terrarium URL" Target="KHOJ_TERRARIUM_URL" Default="" Mode="" Description="Optional external Terrarium sandbox URL for code execution. Example: http://192.168.1.30:8080." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="[Code] E2B API Key" Target="E2B_API_KEY" Default="" Mode="" Description="Optional E2B API key if you want remote code sandboxing instead of Terrarium." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="[Code] Operator Enabled" Target="KHOJ_OPERATOR_ENABLED" Default="False" Mode="" Description="Enable Khoj's operator/computer features if you have separately configured the required environment and tooling." Type="Variable" Display="advanced" Required="false" Mask="false">False</Config>
+  <Config Name="[Code] Docker Socket" Target="/var/run/docker.sock" Default="" Mode="rw" Description="Optional. Only map the Docker socket if you intentionally want to support operator/computer workflows." Type="Path" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="[Access] Public Domain or IP" Target="KHOJ_DOMAIN" Default="" Mode="" Description="Required for remote access through a custom hostname or IP. Do not include http:// or https://." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="[Access] Allowed Internal Domain" Target="KHOJ_ALLOWED_DOMAIN" Default="" Mode="" Description="Optional internal hostname/IP for reverse-proxy or load-balancer setups. If blank, Khoj defaults to KHOJ_DOMAIN." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="[Access] Disable HTTPS Enforcement" Target="KHOJ_NO_HTTPS" Default="True" Mode="" Description="Set to True when intentionally serving over plain HTTP on a trusted LAN or behind a reverse proxy that terminates TLS." Type="Variable" Display="advanced" Required="false" Mask="false">True</Config>
+
+  <Config Name="[Auth] Resend API Key" Target="RESEND_API_KEY" Default="" Mode="" Description="Optional. Enables emailed magic-link login for multi-user access." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="[Auth] Resend Sender Email" Target="RESEND_EMAIL" Default="" Mode="" Description="Optional sender address used for magic-link authentication emails." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="[Voice] ElevenLabs API Key" Target="ELEVEN_LABS_API_KEY" Default="" Mode="" Description="Optional. Enables text-to-speech voice responses using ElevenLabs." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="[Privacy] Disable Telemetry" Target="KHOJ_TELEMETRY_DISABLE" Default="False" Mode="" Description="Set to True to opt out of Khoj's anonymous self-hosted telemetry." Type="Variable" Display="advanced" Required="false" Mask="false">False</Config>
+</Container>

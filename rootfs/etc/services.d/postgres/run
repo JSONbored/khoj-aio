@@ -1,0 +1,17 @@
+#!/command/with-contenv bash
+set -euo pipefail
+
+case "${KHOJ_USE_INTERNAL_POSTGRES:-true}" in
+    false|FALSE|False|0|no|NO|No)
+        exec sleep infinity
+        ;;
+esac
+
+if [ -n "${POSTGRES_HOST:-}" ]; then
+    exec sleep infinity
+fi
+
+PG_VERSION="$(ls /usr/lib/postgresql | sort -V | tail -n1)"
+PGDATA="/var/lib/postgresql/data"
+
+exec su postgres -s /bin/sh -c "/usr/lib/postgresql/${PG_VERSION}/bin/postgres -D \"$PGDATA\" -c listen_addresses='127.0.0.1'"

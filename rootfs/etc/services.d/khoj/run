@@ -1,0 +1,67 @@
+#!/command/with-contenv bash
+set -euo pipefail
+
+cd /app
+
+ENV_FILE="/root/.khoj/aio/generated.env"
+if [ -f "$ENV_FILE" ]; then
+    set -a
+    . "$ENV_FILE"
+    set +a
+fi
+
+if [ -z "${POSTGRES_HOST:-}" ]; then
+    case "${KHOJ_USE_INTERNAL_POSTGRES:-true}" in
+        false|FALSE|False|0|no|NO|No)
+            :
+            ;;
+        *)
+            export POSTGRES_HOST="127.0.0.1"
+            export POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+            export POSTGRES_DB="${POSTGRES_DB:-khoj}"
+            export POSTGRES_USER="${POSTGRES_USER:-khoj}"
+            export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-khoj_internal_pass}"
+            ;;
+    esac
+fi
+
+export USE_EMBEDDED_DB="false"
+export KHOJ_ADMIN_EMAIL="${KHOJ_ADMIN_EMAIL:-admin@khoj.local}"
+export KHOJ_HOST="${KHOJ_HOST:-0.0.0.0}"
+export KHOJ_PORT="${KHOJ_PORT:-42110}"
+
+if [ "${POSTGRES_HOST:-}" = "127.0.0.1" ]; then
+    for _ in $(seq 1 60); do
+        if pg_isready -h 127.0.0.1 -p "${POSTGRES_PORT}" -U "${POSTGRES_USER}" >/dev/null 2>&1; then
+            break
+        fi
+        sleep 1
+    done
+fi
+
+args=(
+    "--host=${KHOJ_HOST}"
+    "--port=${KHOJ_PORT}"
+    "-vv"
+)
+
+case "${KHOJ_ANONYMOUS_MODE:-true}" in
+    true|TRUE|True|1|yes|YES|Yes)
+        args+=("--anonymous-mode")
+        ;;
+esac
+
+case "${KHOJ_NON_INTERACTIVE:-true}" in
+    true|TRUE|True|1|yes|YES|Yes)
+        args+=("--non-interactive")
+        ;;
+esac
+
+if [ -n "${KHOJ_EXTRA_ARGS:-}" ]; then
+    read -r -a extra_args <<< "${KHOJ_EXTRA_ARGS}"
+    args+=("${extra_args[@]}")
+fi
+
+echo "[khoj-aio] Starting Khoj on ${KHOJ_HOST}:${KHOJ_PORT} (internal_postgres=${KHOJ_USE_INTERNAL_POSTGRES:-true})"
+
+exec python3 src/khoj/main.py "${args[@]}"
