@@ -22,7 +22,25 @@ docker run -d \
     -v "${TMP_PGDATA}:/var/lib/postgresql/data" \
     "${IMAGE_TAG}" >/dev/null
 
-for _ in $(seq 1 180); do
+READY_LOG="Khoj is ready to engage"
+
+for _ in $(seq 1 240); do
+    CURRENT_LOGS="$(docker logs "${CONTAINER_NAME}" 2>&1 || true)"
+    if [[ "${CURRENT_LOGS}" == *"${READY_LOG}"* ]]; then
+        break
+    fi
+    if ! docker ps --format '{{.Names}}' | grep -qx "${CONTAINER_NAME}"; then
+        echo "Smoke test container exited unexpectedly." >&2
+        docker logs "${CONTAINER_NAME}" >&2 || true
+        exit 1
+    fi
+    sleep 2
+done
+
+CURRENT_LOGS="$(docker logs "${CONTAINER_NAME}" 2>&1 || true)"
+[[ "${CURRENT_LOGS}" == *"${READY_LOG}"* ]]
+
+for _ in $(seq 1 30); do
     if curl -fsS "http://127.0.0.1:${HOST_PORT}/" >/dev/null 2>&1; then
         break
     fi
@@ -36,5 +54,5 @@ test -f "${TMP_PGDATA}/PG_VERSION"
 
 LOG_FILE="$(mktemp /tmp/khoj-aio-logs.XXXXXX)"
 docker logs "${CONTAINER_NAME}" >"${LOG_FILE}" 2>&1
-grep -q "Khoj is ready to engage" "${LOG_FILE}"
+grep -q "${READY_LOG}" "${LOG_FILE}"
 rm -f "${LOG_FILE}"
