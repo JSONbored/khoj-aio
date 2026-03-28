@@ -39,7 +39,22 @@ jobs:
       - name: Smoke test
         run: |
           chmod +x scripts/smoke-test.sh
+          export KEEP_SMOKE_ARTIFACTS=1
+          export READY_TIMEOUT_SECONDS=600
+          export HTTP_TIMEOUT_SECONDS=120
           ./scripts/smoke-test.sh khoj-aio:ci
+
+      - name: Dump smoke test diagnostics
+        if: failure()
+        run: |
+          echo "Active containers:"
+          docker ps -a
+          echo
+          echo "Inspecting smoke container:"
+          docker inspect khoj-aio-smoke || true
+          echo
+          echo "Container logs:"
+          docker logs khoj-aio-smoke || true
 
   publish:
     needs: smoke-test
