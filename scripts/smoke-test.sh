@@ -66,8 +66,8 @@ while (( SECONDS < http_deadline )); do
 done
 
 curl -fsS "http://127.0.0.1:${HOST_PORT}/" >/dev/null
-grep -q "KHOJ_DJANGO_SECRET_KEY" "${TMP_CONFIG}/aio/generated.env"
-grep -q "KHOJ_ADMIN_PASSWORD" "${TMP_CONFIG}/aio/generated.env"
+docker exec "${CONTAINER_NAME}" sh -lc 'grep -q "KHOJ_DJANGO_SECRET_KEY" /root/.khoj/aio/generated.env'
+docker exec "${CONTAINER_NAME}" sh -lc 'grep -q "KHOJ_ADMIN_PASSWORD" /root/.khoj/aio/generated.env'
 test -f "${TMP_PGDATA}/PG_VERSION"
 
 LOG_FILE="$(mktemp /tmp/khoj-aio-logs.XXXXXX)"
