@@ -3,6 +3,7 @@
 FROM ghcr.io/khoj-ai/khoj:latest
 
 ARG S6_OVERLAY_VERSION=3.1.6.2
+ARG TARGETARCH
 
 USER root
 
@@ -22,8 +23,13 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteract
     postgresql-14-pgvector && \
     curl -L -o /tmp/s6-overlay-noarch.tar.xz https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz && \
     tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz && \
-    curl -L -o /tmp/s6-overlay-x86_64.tar.xz https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz && \
-    tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz && \
+    case "${TARGETARCH}" in \
+      amd64) S6_ARCH="x86_64" ;; \
+      arm64) S6_ARCH="aarch64" ;; \
+      *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac && \
+    curl -L -o /tmp/s6-overlay-${S6_ARCH}.tar.xz https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz && \
+    tar -C / -Jxpf /tmp/s6-overlay-${S6_ARCH}.tar.xz && \
     mkdir -p /root/.khoj /var/lib/postgresql/data /root/.cache/huggingface /root/.cache/torch/sentence_transformers /run/postgresql && \
     chown -R postgres:postgres /var/lib/postgresql /run/postgresql && \
     rm -rf /tmp/* /var/lib/apt/lists/*

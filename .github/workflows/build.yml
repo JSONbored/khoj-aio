@@ -9,8 +9,10 @@ on:
     - cron: '0 0 * * 0'
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   REGISTRY: ghcr.io
   IMAGE_NAME: jsonbored/khoj-aio
+  PUBLISH_PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
   smoke-test:
@@ -85,7 +87,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ env.PUBLISH_PLATFORMS }}
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           load: false
