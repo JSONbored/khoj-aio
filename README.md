@@ -19,6 +19,7 @@ This image uses `s6-overlay v3` to wrap the upstream `ghcr.io/khoj-ai/khoj` imag
 
 - The Khoj web app and API
 - An internally managed PostgreSQL database for a true single-container setup
+- Built-in `pgvector` support so Khoj migrations and embeddings work correctly
 - First-run credential bootstrapping for `KHOJ_DJANGO_SECRET_KEY` and admin password if you leave them blank
 - Persistent config and model cache storage mapped into Unraid `appdata`
 
@@ -45,7 +46,7 @@ This template is intentionally beginner-first, but it does not lock you into beg
 If you click **Show more settings...** in Unraid, you can configure:
 
 - [OpenAI-compatible local providers like Ollama, vLLM, LocalAI, or compatible gateways](docs/power-user.md#2-local-ai-and-openai-compatible-providers)
-- [External PostgreSQL instead of embedded DB mode](docs/power-user.md#1-external-database-overrides)
+- [External PostgreSQL instead of the internal AIO database](docs/power-user.md#1-external-database-overrides)
 - [Remote access, reverse proxy, and custom domain handling](docs/power-user.md#5-remote-access-and-reverse-proxying)
 - [Magic link authentication with Resend](docs/power-user.md#6-authentication-and-multi-user-access)
 - [External web search and code execution backends](docs/power-user.md#3-online-search-providers) and [here](docs/power-user.md#4-code-execution)
@@ -70,8 +71,33 @@ If you back up `/mnt/user/appdata/khoj-aio`, you are backing up the important st
 - For remote IP/domain access, you should set `KHOJ_DOMAIN` and, when needed, `KHOJ_ALLOWED_DOMAIN` to avoid admin-panel CSRF or `DisallowedHost` issues.
 - Google OAuth is not exposed in this base AIO because upstream documents it against the `khoj-cloud` prod image rather than the standard self-hosted image.
 
+## Validation
+
+This repository has been validated with repeated local Docker smoke tests against the live upstream image. The validation path covered:
+
+- image build success on the AIO wrapper
+- first boot from empty config and empty PostgreSQL data
+- automatic admin and secret bootstrap
+- PostgreSQL startup and `pgvector` extension availability
+- successful Khoj migrations and ready state
+- HTTP responses on the published web port
+
 ## License and Acknowledgements
 
 - The upstream application is maintained by the [khoj-ai/khoj](https://github.com/khoj-ai/khoj) team.
 - Khoj is licensed under **AGPL-3.0**.
 - This repository is an Unraid-focused AIO wrapper intended to make self-hosting easier for homelab users.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=JSONbored/khoj-aio&type=date&legend=top-left)](https://www.star-history.com/#JSONbored/khoj-aio&Date)
+
+---
+
+## About the Creator
+
+Built with 🖤 by **[JSONbored](https://github.com/JSONbored)**.
+
+- 🌐 **Portfolio & Services:** [aethereal.dev](https://aethereal.dev)
+- 📅 **Book a Call:** [cal.com/aethereal](https://cal.com/aethereal)
+- ☕ **Support my work:** [Sponsor on GitHub](https://github.com/sponsors/JSONbored)

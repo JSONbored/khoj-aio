@@ -24,8 +24,8 @@ No manual docker-compose conversion. No required external PostgreSQL setup. No e
 4. Restart the container once after first boot so all settings are applied cleanly.</Overview>
   <Category>AI: Productivity: Tools:</Category>
   <WebUI>http://[IP]:[PORT:42110]</WebUI>
-  <TemplateURL>https://github.com/JSONbored/khoj-aio/raw/main/khoj-aio.xml</TemplateURL>
-  <Icon>https://avatars.githubusercontent.com/u/104011870?s=200&amp;v=4</Icon>
+  <TemplateURL>https://raw.githubusercontent.com/JSONbored/awesome-unraid/main/khoj-aio.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/JSONbored/awesome-unraid/main/icons/khoj.png</Icon>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
@@ -82,7 +82,7 @@ No manual docker-compose conversion. No required external PostgreSQL setup. No e
   <Config Name="Non-Interactive Startup" Target="KHOJ_NON_INTERACTIVE" Default="true" Mode="" Description="Recommended for unattended container startup." Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
   <Config Name="Extra CLI Args" Target="KHOJ_EXTRA_ARGS" Default="" Mode="" Description="Optional extra arguments appended to the Khoj startup command." Type="Variable" Display="advanced" Required="false" Mask="false"/>
 
-  <Config Name="[External DB] PostgreSQL Host" Target="POSTGRES_HOST" Default="" Mode="" Description="Optional external PostgreSQL host. Setting this effectively bypasses embedded DB mode." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="[External DB] PostgreSQL Host" Target="POSTGRES_HOST" Default="" Mode="" Description="Optional external PostgreSQL host. Setting this effectively bypasses the internal AIO database." Type="Variable" Display="advanced" Required="false" Mask="false"/>
   <Config Name="[External DB] PostgreSQL Port" Target="POSTGRES_PORT" Default="5432" Mode="" Description="External PostgreSQL port." Type="Variable" Display="advanced" Required="false" Mask="false">5432</Config>
   <Config Name="[External DB] PostgreSQL Database" Target="POSTGRES_DB" Default="postgres" Mode="" Description="External PostgreSQL database name." Type="Variable" Display="advanced" Required="false" Mask="false">postgres</Config>
   <Config Name="[External DB] PostgreSQL User" Target="POSTGRES_USER" Default="postgres" Mode="" Description="External PostgreSQL username." Type="Variable" Display="advanced" Required="false" Mask="false">postgres</Config>

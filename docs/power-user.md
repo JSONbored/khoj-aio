@@ -6,7 +6,7 @@ One upstream note is worth repeating here: after first boot or after changing co
 
 ## 1. External Database Overrides
 
-By default, `khoj-aio` keeps everything in one container by running an internal PostgreSQL service and storing its data under your mapped `/root/.khoj` path.
+By default, `khoj-aio` keeps everything in one container by running an internal PostgreSQL service and storing its data under your mapped `/var/lib/postgresql/data` path, while app config and generated credentials live under `/root/.khoj`.
 
 If you already run PostgreSQL elsewhere and want Khoj to use that instead:
 
