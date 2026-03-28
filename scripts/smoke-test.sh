@@ -68,7 +68,7 @@ done
 curl -fsS "http://127.0.0.1:${HOST_PORT}/" >/dev/null
 docker exec "${CONTAINER_NAME}" sh -lc 'grep -q "KHOJ_DJANGO_SECRET_KEY" /root/.khoj/aio/generated.env'
 docker exec "${CONTAINER_NAME}" sh -lc 'grep -q "KHOJ_ADMIN_PASSWORD" /root/.khoj/aio/generated.env'
-test -f "${TMP_PGDATA}/PG_VERSION"
+docker exec "${CONTAINER_NAME}" sh -lc 'test -f /var/lib/postgresql/data/PG_VERSION'
 
 LOG_FILE="$(mktemp /tmp/khoj-aio-logs.XXXXXX)"
 docker logs "${CONTAINER_NAME}" >"${LOG_FILE}" 2>&1
