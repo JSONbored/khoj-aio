@@ -1,0 +1,14 @@
+[upstream]
+name = "Khoj"
+type = "github-tag"
+repo = "khoj-ai/khoj"
+image = "khoj-ai/khoj"
+version_source = "dockerfile-arg"
+version_key = "UPSTREAM_VERSION"
+digest_source = "dockerfile-arg"
+digest_key = "UPSTREAM_IMAGE_DIGEST"
+strategy = "pr"
+stable_only = false
+
+[notifications]
+release_notes_url = "https://github.com/khoj-ai/khoj/releases"

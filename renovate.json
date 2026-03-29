@@ -1,17 +1,32 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    ":dependencyDashboard"
   ],
   "pinDigests": true,
   "pinTags": false,
+  "labels": [
+    "dependencies"
+  ],
   "packageRules": [
     {
-      "matchUpdateTypes": ["minor", "patch"],
-      "matchCurrentVersion": "!/^0/",
-      "automerge": true,
-      "automergeType": "pr",
-      "platformAutomerge": true
+      "matchManagers": [
+        "github-actions",
+        "dockerfile"
+      ],
+      "matchUpdateTypes": [
+        "digest",
+        "minor",
+        "patch"
+      ],
+      "groupName": "non-major infrastructure updates",
+      "labels": [
+        "dependencies",
+        "github-actions",
+        "docker"
+      ]
     }
   ]
 }
