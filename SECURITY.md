@@ -2,11 +2,12 @@
 
 ## Supported Versions
 
-Only the `latest` tag and the primary branch are supported with security fixes.
+Only the current `latest` image tag, the current upstream-aligned version tags, and the default branch are supported with security fixes.
 
 | Version | Supported |
 | ------- | --------- |
 | latest  | yes       |
+| current upstream-aligned tags | yes |
 | older   | no        |
 
 ## Reporting a Vulnerability
