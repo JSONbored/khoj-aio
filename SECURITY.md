@@ -2,19 +2,25 @@
 
 ## Supported Versions
 
-Only the current `latest` image tag, the current upstream-aligned version tags, and the default branch are supported with security fixes.
+Only the `main` branch, the current `latest` image tag, and the current upstream-aligned version tags are supported with security fixes.
 
 | Version | Supported |
 | ------- | --------- |
+| main    | yes       |
 | latest  | yes       |
 | current upstream-aligned tags | yes |
 | older   | no        |
 
 ## Reporting a Vulnerability
 
-If you discover a security issue in this repository, please report it privately instead of opening a public issue.
+Do not open public issues for suspected vulnerabilities.
 
-- Preferred contact: open a private security advisory on GitHub for this repository
-- Fallback contact: security@aethereal.dev
+- Preferred: GitHub private vulnerability report for this repository
+- Fallback: email `security@aethereal.dev`
 
-Please include reproduction details, affected versions, and any mitigations you have already confirmed.
+Include:
+
+- affected repo, branch, or image tag
+- reproduction steps
+- impact assessment
+- any confirmed mitigation
