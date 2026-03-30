@@ -82,6 +82,17 @@ This repository has been validated with repeated local Docker smoke tests agains
 - successful Khoj migrations and ready state
 - HTTP responses on the published web port
 
+## Versioning And Upstream Tracking
+
+Khoj-AIO now pins a specific upstream Khoj release and the exact upstream image digest that this wrapper builds from. The repository also includes an upstream monitor workflow that checks for new upstream Khoj releases and opens an update PR instead of silently drifting.
+
+Published image tags are intended to include:
+
+- `latest` for the default install path
+- exact upstream version tags like `2.0.0-beta.28`
+- wrapper tags like `2.0.0-beta.28-aio-v1`
+- `sha-<commit>` tags for exact reproducibility
+
 ## License and Acknowledgements
 
 - The upstream application is maintained by the [khoj-ai/khoj](https://github.com/khoj-ai/khoj) team.
@@ -91,13 +102,3 @@ This repository has been validated with repeated local Docker smoke tests agains
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=JSONbored/khoj-aio&type=date&legend=top-left)](https://www.star-history.com/#JSONbored/khoj-aio&Date)
-
----
-
-## About the Creator
-
-Built with 🖤 by **[JSONbored](https://github.com/JSONbored)**.
-
-- 🌐 **Portfolio & Services:** [aethereal.dev](https://aethereal.dev)
-- 📅 **Book a Call:** [cal.com/aethereal](https://cal.com/aethereal)
-- ☕ **Support my work:** [Sponsor on GitHub](https://github.com/sponsors/JSONbored)
