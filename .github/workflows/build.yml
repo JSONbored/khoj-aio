@@ -345,11 +345,20 @@ jobs:
           if [ -f assets/khoj.png ]; then
             cp assets/khoj.png target-repo/icons/khoj.png
           fi
-          cd target-repo
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add khoj-aio.xml
-          if [ -f icons/khoj.png ]; then
-            git add icons/khoj.png
-          fi
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-sync khoj-aio assets from upstream" && git push)
+
+      - name: Create sync pull request
+        if: ${{ steps.token.outputs.enabled == 'true' }}
+        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+        with:
+          token: ${{ secrets.SYNC_TOKEN }}
+          path: target-repo
+          add-paths: |
+            khoj-aio.xml
+            icons/khoj.png
+          commit-message: "chore: auto-sync khoj-aio assets from upstream"
+          branch: "sync-awesome-unraid/khoj-aio"
+          delete-branch: true
+          base: main
+          title: "chore: sync khoj-aio template assets"
+          body: |
+            Automated sync from `JSONbored/khoj-aio`.
