@@ -6,27 +6,21 @@
     ":dependencyDashboard"
   ],
   "pinDigests": true,
-  "pinTags": false,
-  "labels": [
-    "dependencies"
-  ],
+  "labels": ["dependencies"],
   "packageRules": [
     {
-      "matchManagers": [
-        "github-actions",
-        "dockerfile"
-      ],
-      "matchUpdateTypes": [
-        "digest",
-        "minor",
-        "patch"
-      ],
+      "matchManagers": ["github-actions", "dockerfile"],
       "groupName": "non-major infrastructure updates",
-      "labels": [
-        "dependencies",
-        "github-actions",
-        "docker"
-      ]
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "matchCurrentVersion": "!/^0/"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "addLabels": ["github-actions"]
+    },
+    {
+      "matchManagers": ["dockerfile"],
+      "addLabels": ["docker"]
     }
   ]
 }
