@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## 2.0.0-beta.28-aio.1 - 2026-03-31
+## 2.0.0-beta.28-aio.2 - 2026-03-31
 ### Documentation
 - Add repository guidance
 
@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixes
 - Tighten changelog spacing
+- Skip no-op release drafts
 
 
 ### Other Changes
