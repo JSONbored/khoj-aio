@@ -1,33 +1,40 @@
-# khoj-aio Agent Notes
+# AGENTS.md
 
-`khoj-aio` wraps Khoj as a single-container Unraid deployment with an internal PostgreSQL database.
+This repository is part of a broader portfolio of Unraid-first AIO projects.
 
-## Runtime Shape
+## Repository intent
 
-- Upstream app: `ghcr.io/khoj-ai/khoj`
-- Internal PostgreSQL with `pgvector`
-- Persistent config and model/cache storage under appdata
-- Optional first-run secret/admin credential generation
+- This repo packages an opinionated, beginner-friendly Unraid AIO deployment.
+- Default behavior should optimize for a reliable first boot on Unraid.
+- Advanced users should retain escape hatches where supported.
 
-## Important Behavior
+## Engineering expectations
 
-- This repo tracks upstream prereleases because current upstream packaging reality is prerelease-oriented.
-- `upstream.toml` intentionally uses `stable_only = false`.
-- Default mode should remain self-contained and beginner-friendly.
-- Advanced users can still override providers, proxies, sandboxes, or external PostgreSQL.
+- Prefer consistency with `unraid-aio-template` over one-off repo behavior.
+- Keep CI and release behavior aligned with the rest of the AIO fleet.
+- Respect protected branches and use PR-based automation for external sync flows.
+- Favor operational clarity over cleverness.
 
-## CI And Publish Policy
+## Release model
 
-- Validation and smoke tests should run on PRs and branch pushes.
-- Publish should happen only from the default branch.
-- GHCR image naming must stay lowercase.
+- Container packages publish automatically from `main`.
+- Formal changelog updates and GitHub Releases are release-driven.
+- Releases use `upstream version + aio revision`, for example `2.0.0-beta.28-aio.1`.
+- Keep changelog-friendly Conventional Commit titles and PR titles.
 
-## What To Preserve
+## Unraid expectations
 
-- Keep the XML easy for first-time Unraid users.
-- Generated secrets should be persisted so restarts are stable.
-- Smoke coverage should include first boot, restart, and persistence.
+- Unraid-facing XML/icon assets should stay aligned with `awesome-unraid`.
+- User-facing metadata should remain accurate:
+  - `Project`
+  - `Support`
+  - `TemplateURL`
+  - `Icon`
+  - `Overview`
+  - `Category`
 
-## Known Good Pattern
+## Documentation expectations
 
-- After the first boot, a restart remains a useful validation step because Khoj settings finalize cleanly on restart.
+- Be explicit about operational tradeoffs.
+- Do not imply the AIO model removes inherent complexity from the upstream software.
+- Keep beginner defaults simple, but document power-user override paths where they exist.

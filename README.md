@@ -93,6 +93,10 @@ Published image tags are intended to include:
 - wrapper tags like `2.0.0-beta.28-aio-v1`
 - `sha-<commit>` tags for exact reproducibility
 
+Formal GitHub releases should follow the same upstream-version-plus-AIO-revision pattern, such as `2.0.0-beta.28-aio.1`.
+
+See [docs/releases.md](/Users/shadowbook/Documents/khoj-aio/docs/releases.md) for the release workflow details.
+
 ## License and Acknowledgements
 
 - The upstream application is maintained by the [khoj-ai/khoj](https://github.com/khoj-ai/khoj) team.
