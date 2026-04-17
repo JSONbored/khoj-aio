@@ -42,7 +42,7 @@
 &#xD;
 &#xD;
 Full changelog and release notes: [url=https://github.com/JSONbored/khoj-aio/releases]GitHub Releases[/url]</Changes>
-  <Category>Tools: Utilities: Productivity:</Category>
+  <Category>AI: Productivity: Tools:Utilities</Category>
   <WebUI>http://[IP]:[PORT:42110]</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/JSONbored/awesome-unraid/main/khoj-aio.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/JSONbored/awesome-unraid/main/icons/khoj.png</Icon>
