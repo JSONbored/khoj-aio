@@ -1,108 +1,94 @@
+# khoj-aio
+
 <div align="center">
 
-# Khoj AIO (All-in-One) for Unraid
-
-[![Docker Image](https://img.shields.io/badge/Image-ghcr.io%2Fjsonbored%2Fkhoj--aio-blue)](https://github.com/JSONbored/khoj-aio/pkgs/container/khoj-aio)
-[![GitHub License](https://img.shields.io/github/license/khoj-ai/khoj?color=green)](https://github.com/khoj-ai/khoj/blob/main/LICENSE)
-[![Unraid Community Applications](https://img.shields.io/badge/Unraid-CA%20Template-orange)](https://unraid.net/community/apps)
-
-An ultra-simplified, self-contained deployment of [Khoj](https://github.com/khoj-ai/khoj) designed for Unraid users who want a clean, beginner-friendly install without giving up advanced controls.
+<img src="https://socialify.git.ci/JSONbored/khoj-aio/image?custom_description=All-in-One+Unraid+container+for+Khoj%2C+a+self-hosted+AI+second+brain.+Turn+any+online+or+local+LLM+into+your+personal%2C+autonomous+AI.&custom_language=Dockerfile&description=1&font=Raleway&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F134046886%3Fs%3D200%26v%3D4&name=1&owner=1&pattern=Circuit+Board&pulls=1&stargazers=1&theme=Light" alt="khoj-aio" width="640" height="320" />
 
 </div>
 
 ---
 
-Instead of making newcomers wire up a multi-container `docker-compose` stack by hand, this AIO wrapper runs Khoj inside a single Unraid container and manages an internal PostgreSQL database automatically for the easiest possible first boot. Advanced users can still override the defaults and point Khoj at external model providers, search backends, code sandboxes, reverse proxies, or an external PostgreSQL database.
+An Unraid-first, single-container deployment of [Khoj](https://github.com/khoj-ai/khoj) for people who want the easiest reliable self-hosted install without manually wiring PostgreSQL or reworking the upstream compose stack for Unraid.
 
-## What's Inside the AIO Container
-This image uses `s6-overlay v3` to wrap the upstream `ghcr.io/khoj-ai/khoj` image with a more Unraid-friendly startup flow:
+`khoj-aio` keeps the critical first-boot dependency bundled: PostgreSQL with `pgvector`. The wrapper is opinionated for a predictable beginner install, but it does not hide the real tradeoffs: remote exposure still needs correct auth and domain settings, operator/computer features carry meaningful security implications, and advanced search/sandbox/provider integrations still consume real resources.
 
-- The Khoj web app and API
-- An internally managed PostgreSQL database for a true single-container setup
-- Built-in `pgvector` support so Khoj migrations and embeddings work correctly
-- First-run credential bootstrapping for `KHOJ_DJANGO_SECRET_KEY` and admin password if you leave them blank
-- Persistent config and model cache storage mapped into Unraid `appdata`
+## What This Image Includes
 
-This keeps the install simple for beginners while preserving the upstream environment variables and admin-panel driven customization model for power users.
+- Khoj web UI and API on port `42110`
+- Embedded PostgreSQL with `pgvector`
+- Persistent appdata paths for config, database state, and model caches
+- First-run generation for `KHOJ_DJANGO_SECRET_KEY`, `KHOJ_ADMIN_PASSWORD`, and the internal DB password when left unset
+- Unraid CA template at [khoj-aio.xml](khoj-aio.xml)
 
-## Installation (For Beginners)
+## Beginner Install
 
-1. Add this repository to Unraid Community Applications, or import the XML directly.
-2. Install **Khoj AIO**.
-3. Leave the default paths alone unless you know you want them elsewhere.
-4. Optionally set your own `Admin Email`, `Admin Password`, and `Django Secret Key`.
-5. Click **Apply**.
+If you want the simplest supported path:
 
-If you leave the password or secret blank, the container will generate secure values on first boot and save them under `/root/.khoj/aio/generated.env` inside your mapped config folder.
+1. Install the Unraid template.
+2. Leave the default appdata paths in place.
+3. Optionally set `KHOJ_ADMIN_EMAIL`, `KHOJ_ADMIN_PASSWORD`, and `KHOJ_DJANGO_SECRET_KEY`.
+4. Leave `KHOJ_ANONYMOUS_MODE=true` for the default private single-user flow.
+5. Start the container and wait for first-boot initialization to complete.
+6. Open the web UI on port `42110`.
+7. Restart the container once after the initial setup so all settings are fully applied.
 
-Wait about 30-60 seconds on the first launch. Once the logs show that Khoj is ready, open the WebUI on port `42110`.
+If you leave the admin password or Django secret blank, the wrapper generates secure values and writes them to `/root/.khoj/aio/generated.env` inside your mapped config path.
 
-After the very first boot, restart the container once. Khoj's self-host docs recommend a restart after initial setup so all settings are fully applied.
+## Power User Surface
 
-## Power User Configuration
+This repo is deliberately not a stripped-down wrapper. The template now tracks the practical self-hosted environment surface exposed by upstream source and docs, plus AIO-specific controls for the bundled database flow. In Advanced View you can:
 
-This template is intentionally beginner-first, but it does not lock you into beginner-only behavior.
+- move PostgreSQL out of the container with the standard `POSTGRES_*` settings
+- point Khoj at OpenAI, Anthropic, Gemini, Ollama, LM Studio, LiteLLM, vLLM, or other OpenAI-compatible endpoints
+- configure SearxNG, Serper, Google Search, Firecrawl, Olostep, or Exa for search and webpage reading
+- enable Terrarium or E2B code execution
+- tune operator/computer behavior and optionally mount the Docker socket for that path
+- configure Resend, Google auth, Notion OAuth, Twilio, and AWS-backed upload storage
+- expose runtime tuning knobs like Gunicorn worker/timeouts and research iteration limits
 
-If you click **Show more settings...** in Unraid, you can configure:
+The wrapper still defaults to the internal bundled database and a minimal beginner-safe install path so new Unraid users are not forced into extra containers on day one.
 
-- [OpenAI-compatible local providers like Ollama, vLLM, LocalAI, or compatible gateways](docs/power-user.md#2-local-ai-and-openai-compatible-providers)
-- [External PostgreSQL instead of the internal AIO database](docs/power-user.md#1-external-database-overrides)
-- [Remote access, reverse proxy, and custom domain handling](docs/power-user.md#5-remote-access-and-reverse-proxying)
-- [Magic link authentication with Resend](docs/power-user.md#6-authentication-and-multi-user-access)
-- [External web search and code execution backends](docs/power-user.md#3-online-search-providers) and [here](docs/power-user.md#4-code-execution)
-- [Telemetry disablement and voice/TTS options](docs/power-user.md#7-voice-and-speech-options)
+## Runtime Notes
 
-## Data Persistence
+- Upstream Khoj releases are currently tagged as beta releases. This wrapper tracks the latest published production-facing release line rather than floating `latest`.
+- The internal PostgreSQL service is bound to loopback inside the container and now uses a generated per-install password instead of a fixed hardcoded credential.
+- The bundled database user is no longer created as a PostgreSQL superuser; the wrapper creates the `vector` extension as `postgres` during initialization instead.
+- Search, webpage-reading, and code-execution integrations are intentionally optional. The AIO image does not currently bundle SearxNG or Terrarium by default because that would materially increase resource cost and attack surface for all users.
+- If you expose Khoj beyond your LAN, you should set strong credentials, set `KHOJ_DOMAIN` and `KHOJ_ALLOWED_DOMAIN` correctly, and strongly consider disabling anonymous mode.
 
-Your data survives container updates because the important paths are mapped to Unraid storage:
+## Publishing and Releases
 
-- Khoj config and uploads: `/mnt/user/appdata/khoj-aio/config`
-- Internal PostgreSQL data: `/mnt/user/appdata/khoj-aio/postgres`
-- Hugging Face model cache: `/mnt/user/appdata/khoj-aio/models/huggingface`
-- SentenceTransformer cache: `/mnt/user/appdata/khoj-aio/models/sentence-transformers`
+- Wrapper releases use the upstream version plus an AIO revision, such as `2.0.0-beta.28-aio.1`.
+- The repo monitors upstream releases and image digest changes through [upstream.toml](upstream.toml) and [scripts/check-upstream.py](scripts/check-upstream.py).
+- Release notes are generated with `git-cliff`.
+- The Unraid template `<Changes>` block is synced from `CHANGELOG.md` during release preparation.
+- `main` publishes `latest`, the pinned upstream version tag, an explicit AIO packaging line tag, and `sha-<commit>`.
+- When Docker Hub credentials are configured, the same publish flow pushes Docker Hub tags in parallel with GHCR so the CA template can read Docker Hub metadata.
 
-If you back up `/mnt/user/appdata/khoj-aio`, you are backing up the important state for this deployment.
-
-## Notes
-
-- This AIO image manages its own internal PostgreSQL database inside the container so first boot works cleanly without extra sidecars.
-- Upstream `docker-compose` also includes separate SearxNG and Terrarium containers. In this AIO design those are optional advanced integrations, not first-boot requirements.
-- Basic webpage reading still works out of the box, since Khoj can fetch pages directly without an external scraper.
-- For remote IP/domain access, you should set `KHOJ_DOMAIN` and, when needed, `KHOJ_ALLOWED_DOMAIN` to avoid admin-panel CSRF or `DisallowedHost` issues.
-- Google OAuth is not exposed in this base AIO because upstream documents it against the `khoj-cloud` prod image rather than the standard self-hosted image.
+See [docs/releases.md](docs/releases.md) for the release workflow details.
 
 ## Validation
 
-This repository has been validated with repeated local Docker smoke tests against the live upstream image. The validation path covered:
+Local validation is built around:
 
-- image build success on the AIO wrapper
-- first boot from empty config and empty PostgreSQL data
-- automatic admin and secret bootstrap
-- PostgreSQL startup and `pgvector` extension availability
-- successful Khoj migrations and ready state
-- HTTP responses on the published web port
+- XML validation for the audited template surface
+- shell and Python syntax checks
+- local Docker build on `linux/amd64`
+- end-to-end smoke coverage for first boot, generated credentials, internal PostgreSQL readiness, restart, and persistence
 
-## Versioning And Upstream Tracking
+## Support
 
-Khoj-AIO now pins a specific upstream Khoj release and the exact upstream image digest that this wrapper builds from. The repository also includes an upstream monitor workflow that checks for new upstream Khoj releases and opens an update PR instead of silently drifting.
+- Repo issues: [JSONbored/khoj-aio issues](https://github.com/JSONbored/khoj-aio/issues)
+- Upstream app: [khoj-ai/khoj](https://github.com/khoj-ai/khoj)
 
-Published image tags are intended to include:
+## Funding
 
-- `latest` for the default install path
-- exact upstream version tags like `2.0.0-beta.28`
-- wrapper tags like `2.0.0-beta.28-aio-v1`
-- `sha-<commit>` tags for exact reproducibility
+If this work saves you time, support it here:
 
-Formal GitHub releases should follow the same upstream-version-plus-AIO-revision pattern, such as `2.0.0-beta.28-aio.1`.
-
-See [docs/releases.md](/Users/shadowbook/Documents/khoj-aio/docs/releases.md) for the release workflow details.
-
-## License and Acknowledgements
-
-- The upstream application is maintained by the [khoj-ai/khoj](https://github.com/khoj-ai/khoj) team.
-- Khoj is licensed under **AGPL-3.0**.
-- This repository is an Unraid-focused AIO wrapper intended to make self-hosting easier for homelab users.
+- [GitHub Sponsors](https://github.com/sponsors/JSONbored)
+- [Ko-fi](https://ko-fi.com/jsonbored)
+- [Buy Me a Coffee](https://buymeacoffee.com/jsonbored)
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=JSONbored/khoj-aio&type=date&legend=top-left)](https://www.star-history.com/#JSONbored/khoj-aio&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=JSONbored/khoj-aio&theme=dark)](https://star-history.com/#JSONbored/khoj-aio&Date)

@@ -1,0 +1,4 @@
+# Keep only repo-wide shell source suppressions here; Dockerfile-specific rule waivers stay inline.
+ignored:
+  - SC1090
+  - SC1091

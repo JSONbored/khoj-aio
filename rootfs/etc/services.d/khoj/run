@@ -20,7 +20,7 @@ if [ -z "${POSTGRES_HOST:-}" ]; then
             export POSTGRES_PORT="${POSTGRES_PORT:-5432}"
             export POSTGRES_DB="${POSTGRES_DB:-khoj}"
             export POSTGRES_USER="${POSTGRES_USER:-khoj}"
-            export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-khoj_internal_pass}"
+            export POSTGRES_PASSWORD="${KHOJ_INTERNAL_POSTGRES_PASSWORD:?Missing generated internal PostgreSQL password}"
             ;;
     esac
 fi

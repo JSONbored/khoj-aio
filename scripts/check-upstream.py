@@ -6,9 +6,10 @@ import json
 import os
 import pathlib
 import re
+import sys
 import urllib.error
 import urllib.request
-
+from typing import NoReturn
 
 ROOT = pathlib.Path(".")
 UPSTREAM_FILE = ROOT / "upstream.toml"
@@ -19,7 +20,7 @@ SEMVER_RE = re.compile(
 )
 
 
-def fail(message: str) -> "NoReturn":
+def fail(message: str) -> NoReturn:
     print(message, file=sys.stderr)
     raise SystemExit(1)
 
@@ -34,7 +35,7 @@ def http_json(url: str, headers: dict[str, str] | None = None) -> object:
         },
     )
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:
+        with urllib.request.urlopen(request, timeout=30) as response:  # nosec B310
             return json.load(response)
     except urllib.error.HTTPError as exc:
         fail(f"HTTP error while requesting {url}: {exc.code} {exc.reason}")
@@ -66,7 +67,9 @@ def prerelease_sort_key(prerelease: str) -> tuple[tuple[int, object], ...]:
     return tuple(parts)
 
 
-def version_sort_key(value: str) -> tuple[int, int, int, int, tuple[tuple[int, object], ...]]:
+def version_sort_key(
+    value: str,
+) -> tuple[int, int, int, int, tuple[tuple[int, object], ...]]:
     major, minor, patch, is_prerelease, prerelease = parse_version(value)
     return (
         major,
@@ -96,15 +99,26 @@ def github_headers() -> dict[str, str]:
     return {}
 
 
-def latest_github_tag(repo: str, stable_only: bool) -> str:
-    data = http_json(f"https://api.github.com/repos/{repo}/tags?per_page=100", github_headers())
+def latest_github_release(repo: str, stable_only: bool) -> str:
+    data = http_json(
+        f"https://api.github.com/repos/{repo}/releases?per_page=100", github_headers()
+    )
     if not isinstance(data, list):
-        fail(f"Unexpected GitHub tags response for {repo}")
-    tags = [entry["name"] for entry in data if isinstance(entry, dict) and isinstance(entry.get("name"), str)]
-    candidates = filter_versions(tags, stable_only)
-    if not candidates:
-        fail(f"No matching tags found for upstream repo {repo}")
-    return sorted(candidates, key=version_sort_key)[-1]
+        fail(f"Unexpected GitHub releases response for {repo}")
+    releases: list[str] = []
+    for entry in data:
+        if not isinstance(entry, dict):
+            continue
+        tag = entry.get("tag_name")
+        if not isinstance(tag, str) or not SEMVER_RE.match(tag):
+            continue
+        prerelease = bool(entry.get("prerelease"))
+        if stable_only and prerelease:
+            continue
+        releases.append(tag)
+    if not releases:
+        fail(f"No matching releases found for upstream repo {repo}")
+    return sorted(releases, key=version_sort_key)[-1]
 
 
 def latest_ghcr_digest(image: str, tag: str = "latest") -> str:
@@ -129,12 +143,16 @@ def latest_ghcr_digest(image: str, tag: str = "latest") -> str:
         method="HEAD",
     )
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:
+        with urllib.request.urlopen(request, timeout=30) as response:  # nosec B310
             digest = response.headers.get("docker-content-digest", "").strip()
     except urllib.error.HTTPError as exc:
-        fail(f"HTTP error while requesting GHCR manifest for {image}:{tag}: {exc.code} {exc.reason}")
+        fail(
+            f"HTTP error while requesting GHCR manifest for {image}:{tag}: {exc.code} {exc.reason}"
+        )
     except urllib.error.URLError as exc:
-        fail(f"Network error while requesting GHCR manifest for {image}:{tag}: {exc.reason}")
+        fail(
+            f"Network error while requesting GHCR manifest for {image}:{tag}: {exc.reason}"
+        )
     if not digest:
         fail(f"Could not determine digest for GHCR image {image}:{tag}")
     return digest
@@ -209,9 +227,19 @@ def main() -> None:
     stable_only = bool(upstream.get("stable_only", True))
     current_version = read_local_value(str(upstream.get("version_key", "")).strip())
     current_digest = read_local_value(str(upstream.get("digest_key", "")).strip())
-    latest_version = latest_github_tag(str(upstream.get("repo", "")).strip(), stable_only)
-    latest_digest = latest_ghcr_digest(str(upstream.get("image", "")).strip(), "latest")
-    updates_available = latest_version != current_version or latest_digest != current_digest
+    upstream_type = str(upstream.get("type", "")).strip()
+    if upstream_type == "github-release":
+        latest_version = latest_github_release(
+            str(upstream.get("repo", "")).strip(), stable_only
+        )
+    else:
+        fail(f"Unsupported upstream type: {upstream_type}")
+    latest_digest = latest_ghcr_digest(
+        str(upstream.get("image", "")).strip(), latest_version
+    )
+    updates_available = (
+        latest_version != current_version or latest_digest != current_digest
+    )
 
     if os.environ.get("WRITE_UPSTREAM_VERSION") == "true" and updates_available:
         write_local_value(str(upstream.get("version_key", "")).strip(), latest_version)
@@ -223,6 +251,12 @@ def main() -> None:
     if not release_notes:
         release_notes = f"https://github.com/{upstream['repo']}/releases"
 
+    branch_name = f"codex/upstream-{latest_version}"
+    pr_title = f"chore(deps): bump upstream to {latest_version}"
+    if latest_version == current_version and latest_digest != current_digest:
+        branch_name = f"codex/upstream-{latest_version}-digest-refresh"
+        pr_title = f"chore(deps): refresh upstream digest for {latest_version}"
+
     write_outputs(
         {
             "current_version": current_version,
@@ -233,6 +267,8 @@ def main() -> None:
             "strategy": str(upstream.get("strategy", "pr")).strip() or "pr",
             "upstream_name": str(upstream.get("name", "")).strip(),
             "release_notes_url": release_notes,
+            "branch_name": branch_name,
+            "pr_title": pr_title,
         }
     )
 

@@ -1,17 +1,17 @@
 # Power User Guide: Khoj-AIO Configs
 
-This AIO image keeps the first-run path simple, but the advanced template fields let you move much closer to the upstream self-hosted Khoj configuration when you want to.
+This AIO image keeps the first-run path simple, but the advanced template fields let you move much closer to the full upstream self-hosted runtime surface when you want to.
 
 One upstream note is worth repeating here: after first boot or after changing core environment variables, restart the container once so Khoj reapplies the settings cleanly.
 
 ## 1. External Database Overrides
 
-By default, `khoj-aio` keeps everything in one container by running an internal PostgreSQL service and storing its data under your mapped `/var/lib/postgresql/data` path, while app config and generated credentials live under `/root/.khoj`.
+By default, `khoj-aio` keeps everything in one container by running an internal PostgreSQL service and storing its data under your mapped `/var/lib/postgresql/data` path, while app config and generated secrets live under `/root/.khoj`.
 
 If you already run PostgreSQL elsewhere and want Khoj to use that instead:
 
 1. Open the Unraid template and click **Show more settings...**
-2. Set `Use Internal PostgreSQL` to `false`.
+2. Set `KHOJ_USE_INTERNAL_POSTGRES=false`.
 3. Fill in the external PostgreSQL variables:
    - `POSTGRES_HOST`
    - `POSTGRES_PORT`
@@ -20,98 +20,117 @@ If you already run PostgreSQL elsewhere and want Khoj to use that instead:
    - `POSTGRES_PASSWORD`
 4. Re-apply the container.
 
-If `POSTGRES_HOST` is set, the wrapper will treat that as an external DB deployment even if you forget to toggle `Use Internal PostgreSQL`.
+If `POSTGRES_HOST` is set, the wrapper treats that as an external DB deployment even if you forget to toggle `KHOJ_USE_INTERNAL_POSTGRES`.
 
 ## 2. Local AI and OpenAI-Compatible Providers
 
 Khoj supports OpenAI-compatible APIs, which makes local and third-party model endpoints easy to use.
 
+Typical knobs:
+
+- `OPENAI_BASE_URL`
+- `OPENAI_API_KEY`
+- `KHOJ_DEFAULT_CHAT_MODEL`
+- `KHOJ_LLM_SEED`
+
 ### Ollama
 
-Per the Khoj docs, set:
+Set:
 
-- `OPENAI_BASE_URL=http://your-ollama-host:11434/v1/`
+- `OPENAI_BASE_URL=http://host.docker.internal:11434/v1/`
 
-Then start Khoj and finish model selection in the admin panel.
+If your LLM server runs on the Unraid host rather than in another container, you may also need an Unraid extra parameter such as `--add-host=host.docker.internal:host-gateway`.
 
 ### Other OpenAI-Compatible Providers
 
 You can also point Khoj at:
 
 - vLLM
+- LM Studio
+- LiteLLM
 - LocalAI
-- LiteLLM or other compatible gateways
 - hosted OpenAI-compatible gateways
-
-Use:
-
-- `OPENAI_BASE_URL`
-- `OPENAI_API_KEY` if your endpoint requires one
-- `KHOJ_DEFAULT_CHAT_MODEL` if you already know the model name you want to prefer
 
 Khoj's admin panel is still the best place to finalize model definitions and defaults after first boot.
 
-If your model server runs directly on the Unraid host rather than in another container, you may need to add an Unraid extra parameter such as `--add-host=host.docker.internal:host-gateway` and then use `http://host.docker.internal:<port>/v1/` as the base URL.
+## 3. Search and Webpage Reading
 
-## 3. Online Search Providers
+The upstream `docker-compose.yml` defaults to separate search services. This AIO image keeps those integrations optional.
 
-The upstream `docker-compose.yml` defaults to a separate SearxNG container. This AIO image does not bundle SearxNG internally, so you have two advanced paths:
+### Search providers
 
-### Option A: External SearxNG
+Use one or more of:
 
-Set:
-
-- `KHOJ_SEARXNG_URL=http://your-searxng-host:8080`
-
-This best matches the upstream default behavior.
-
-### Option B: Provider APIs
-
-Khoj also supports several external web-search or webpage-read APIs. Use whichever service you prefer:
-
+- `KHOJ_SEARXNG_URL`
 - `SERPER_DEV_API_KEY`
+- `GOOGLE_SEARCH_API_KEY`
+- `GOOGLE_SEARCH_ENGINE_ID`
+- `FIRECRAWL_API_KEY`
+- `EXA_API_KEY`
+
+### Webpage reading providers
+
+Use one or more of:
+
 - `OLOSTEP_API_KEY`
 - `FIRECRAWL_API_KEY`
 - `EXA_API_KEY`
 
-If none of these are set, Khoj still works fine. Basic webpage reading still works via Khoj's normal HTTP fetching, but online search quality and advanced page extraction will be more limited.
+Optional API base URL overrides:
 
-## 4. Code Execution
+- `OLOSTEP_API_URL`
+- `FIRECRAWL_API_URL`
+- `EXA_API_URL`
 
-The upstream compose stack points Khoj at a separate Terrarium container by default.
+Optional behavior override:
 
-For this AIO template, use one of these approaches:
+- `KHOJ_AUTO_READ_WEBPAGE=true`
 
-### Option A: External Terrarium
+If none of these are set, Khoj still works. Search and page-read quality will just depend more heavily on the basic self-hosted path.
 
-Set:
+## 4. Code Execution and Operator
+
+### Code execution
+
+Use one of:
 
 - `KHOJ_TERRARIUM_URL=http://your-terrarium-host:8080`
-
-### Option B: E2B
-
-Set:
-
 - `E2B_API_KEY`
 
-If neither is configured, normal chat/search/document workflows still work, but code execution features will not be available.
+Optional E2B override:
+
+- `E2B_TEMPLATE`
+
+### Operator / computer mode
+
+Enable only if you understand the security tradeoff:
+
+- `KHOJ_OPERATOR_ENABLED=true`
+- mount `/var/run/docker.sock`
+
+Optional expert knobs:
+
+- `KHOJ_OPERATOR_ITERATIONS`
+- `KHOJ_CDP_URL`
+
+If you do not configure these, normal chat/search/document workflows still work.
 
 ## 5. Remote Access and Reverse Proxying
 
 For LAN or internet access, the Khoj docs recommend setting:
 
-- `KHOJ_DOMAIN` to your externally reachable IP or hostname
-- `KHOJ_ALLOWED_DOMAIN` to your internal host or reverse-proxy upstream target when needed
-- `KHOJ_NO_HTTPS=True` if you are intentionally running over HTTP behind a trusted private network or reverse proxy
+- `KHOJ_DOMAIN`
+- `KHOJ_ALLOWED_DOMAIN`
+- `KHOJ_NO_HTTPS=true` when you intentionally serve plain HTTP on a trusted LAN or behind a reverse proxy that terminates TLS
 
 Typical examples:
 
 - `KHOJ_DOMAIN=192.168.1.50`
 - `KHOJ_DOMAIN=khoj.example.com`
+- `KHOJ_ALLOWED_DOMAIN=server`
 - `KHOJ_ALLOWED_DOMAIN=192.168.1.50`
-- `KHOJ_ALLOWED_DOMAIN=khoj`
 
-If you use Nginx Proxy Manager, Traefik, Caddy, or a Cloudflare Tunnel, these settings are the first place to look when you hit CSRF or `DisallowedHost` errors.
+If you use Nginx Proxy Manager, Traefik, Caddy, or Cloudflare Tunnel, these settings are the first place to look when you hit CSRF or `DisallowedHost` errors.
 
 ## 6. Authentication and Multi-User Access
 
@@ -119,28 +138,64 @@ Khoj's self-hosted defaults are single-user and anonymous-mode friendly. This AI
 
 To enable sign-in:
 
-1. Set `Anonymous Mode` to `false`.
-2. Configure magic-link email delivery if desired:
-   - `RESEND_API_KEY`
-   - `RESEND_EMAIL`
-3. Re-apply the container and use the admin panel to manage users.
+1. Set `KHOJ_ANONYMOUS_MODE=false`.
+2. Configure one of the auth paths below.
+3. Re-apply the container and restart once.
 
-Without Resend, Khoj can still generate magic links manually through the admin panel, but you will have to send them yourself.
+### Magic links with Resend
 
-If you are exposing Khoj beyond localhost, strongly consider disabling anonymous mode before opening access externally.
+- `RESEND_API_KEY`
+- `RESEND_EMAIL`
+- `RESEND_AUDIENCE_ID` (optional)
 
-## 7. Voice and Speech Options
+Without Resend, Khoj can still generate magic links manually through the admin panel, but you must send them yourself.
 
-Khoj voice input works locally by default after initialization. For optional text-to-speech voice responses, set:
+### Google OAuth
+
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+
+Upstream currently documents Google OAuth mainly against the prod `khoj-cloud` image. Treat this as an expert path on the standard `khoj` image until you confirm your exact flow works.
+
+## 7. Voice, Notion, Storage, and Twilio
+
+### Voice / TTS
 
 - `ELEVEN_LABS_API_KEY`
 
-OpenAI Whisper-based speech-to-text model choices are then configured through the Khoj admin panel.
+### Notion OAuth
 
-## 8. Telemetry
+- `NOTION_OAUTH_CLIENT_ID`
+- `NOTION_OAUTH_CLIENT_SECRET`
+- `NOTION_REDIRECT_URI`
 
-To disable telemetry entirely, set:
+### AWS-backed upload storage
 
-- `KHOJ_TELEMETRY_DISABLE=True`
+- `AWS_ACCESS_KEY`
+- `AWS_SECRET_KEY`
+- `AWS_IMAGE_UPLOAD_BUCKET`
+- `AWS_USER_UPLOADED_IMAGES_BUCKET_NAME`
 
-This matches the upstream self-hosting docs.
+### Twilio
+
+- `TWILIO_ACCOUNT_SID`
+- `TWILIO_AUTH_TOKEN`
+- `TWILIO_VERIFICATION_SID`
+
+These are advanced integrations. Beginners can leave them unset.
+
+## 8. Runtime Tuning and Privacy
+
+Optional runtime tuning:
+
+- `GUNICORN_WORKERS`
+- `GUNICORN_TIMEOUT`
+- `GUNICORN_GRACEFUL_TIMEOUT`
+- `GUNICORN_KEEP_ALIVE`
+- `KHOJ_RESEARCH_ITERATIONS`
+
+Telemetry:
+
+- `KHOJ_TELEMETRY_DISABLE=true`
+
+Leave the runtime knobs unset unless you have a specific reason to change them. The defaults are safer than random tuning.
