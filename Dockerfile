@@ -2,7 +2,7 @@
 # checkov:skip=CKV_DOCKER_7:Upstream image is pinned by immutable digest instead of a mutable tag.
 # checkov:skip=CKV_DOCKER_8:The wrapper needs root for s6 init, package install, and managed internal PostgreSQL startup.
 ARG UPSTREAM_VERSION=2.0.0-beta.28
-ARG UPSTREAM_IMAGE_DIGEST=sha256:eb2e44669df44b51cb206b394dc0a00c782ac152dda02c97c9e3dac3d643dbb4
+ARG UPSTREAM_IMAGE_DIGEST=sha256:41aa881c957a035207c11da239dc436d0f8a0c6a72b372651c5a48e08127043a
 FROM ghcr.io/khoj-ai/khoj@${UPSTREAM_IMAGE_DIGEST}
 
 ARG S6_OVERLAY_VERSION=3.1.6.2
