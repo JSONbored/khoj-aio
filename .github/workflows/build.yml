@@ -39,8 +39,8 @@ on:
         required: false
         default: false
         type: boolean
-      aio_track_override:
-        description: "Optional package line override (example: aio-v3)"
+      release_tag_override:
+        description: "Optional exact release tag override (example: 2.0.0-beta.28-aio.3)"
         required: false
         default: ""
         type: string
@@ -364,7 +364,7 @@ jobs:
       - name: Compute image tags
         id: prep
         env:
-          AIO_TRACK_OVERRIDE: ${{ github.event_name == 'workflow_dispatch' && inputs.aio_track_override || '' }}
+          RELEASE_TAG_OVERRIDE: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag_override || '' }}
           DOCKERHUB_ENABLED: ${{ steps.dockerhub.outputs.enabled }}
           DOCKERHUB_IMAGE_NAME: ${{ steps.dockerhub.outputs.image_name }}
         run: |
@@ -375,35 +375,29 @@ jobs:
           raw_version="$(sed -n 's/^ARG UPSTREAM_VERSION=//p' Dockerfile | head -n1)"
           upstream_version="${raw_version%%@*}"
           upstream_digest="$(sed -n 's/^ARG UPSTREAM_IMAGE_DIGEST=//p' Dockerfile | head -n1)"
-          if [[ -n "${AIO_TRACK_OVERRIDE}" ]]; then
-            aio_track="${AIO_TRACK_OVERRIDE}"
+          if [[ -n "${RELEASE_TAG_OVERRIDE}" ]]; then
+            release_package_tag="${RELEASE_TAG_OVERRIDE}"
           else
             changelog_version="$(python3 scripts/release.py latest-changelog-version 2>/dev/null || true)"
-            aio_revision=""
             case "${changelog_version}" in
               "${upstream_version}"-aio.*)
-                candidate_revision="${changelog_version##*.}"
-                if [[ "${candidate_revision}" =~ ^[0-9]+$ ]]; then
-                  aio_revision="${candidate_revision}"
-                fi
+                release_package_tag="${changelog_version}"
+                ;;
+              *)
+                release_package_tag="${upstream_version}-aio.1"
                 ;;
             esac
-            if [[ -n "${aio_revision}" ]]; then
-              aio_track="aio-v${aio_revision}"
-            else
-              aio_track="aio-v1"
-            fi
           fi
 
           {
             echo "upstream_version=${upstream_version}"
             echo "upstream_digest=${upstream_digest}"
-            echo "aio_track=${aio_track}"
+            echo "release_package_tag=${release_package_tag}"
             echo "tags<<EOF"
             echo "${image_ghcr}:latest"
             if [[ -n "${upstream_version}" ]]; then
               echo "${image_ghcr}:${upstream_version}"
-              echo "${image_ghcr}:${upstream_version}-${aio_track}"
+              echo "${image_ghcr}:${release_package_tag}"
             fi
             echo "${sha_tag_ghcr}"
 
@@ -411,7 +405,7 @@ jobs:
               echo "${image_dockerhub}:latest"
               if [[ -n "${upstream_version}" ]]; then
                 echo "${image_dockerhub}:${upstream_version}"
-                echo "${image_dockerhub}:${upstream_version}-${aio_track}"
+                echo "${image_dockerhub}:${release_package_tag}"
               fi
               echo "${image_dockerhub}:sha-${GITHUB_SHA}"
             fi
@@ -431,14 +425,15 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/JSONbored/khoj-aio
             org.opencontainers.image.title=khoj-aio
-            org.opencontainers.image.version=${{ steps.prep.outputs.upstream_version || '' }}
+            org.opencontainers.image.version=${{ steps.prep.outputs.release_package_tag || '' }}
             org.opencontainers.image.description=Unraid-first AIO wrapper image for Khoj with an internal PostgreSQL default
             io.jsonbored.upstream.name=Khoj
             io.jsonbored.upstream.version=${{ steps.prep.outputs.upstream_version || '' }}
             io.jsonbored.upstream.digest=${{ steps.prep.outputs.upstream_digest || '' }}
             io.jsonbored.wrapper.name=khoj-aio
             io.jsonbored.wrapper.type=unraid-aio
-            io.jsonbored.wrapper.track=${{ steps.prep.outputs.aio_track }}
+            io.jsonbored.wrapper.track=${{ steps.prep.outputs.release_package_tag || '' }}
+            io.jsonbored.wrapper.version=${{ steps.prep.outputs.release_package_tag || '' }}
           load: false
 
   sync-awesome-unraid:
