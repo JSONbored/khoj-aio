@@ -14,7 +14,9 @@ RELEASES_URL = "https://github.com/JSONbored/khoj-aio/releases"
 
 
 def extract_release_notes(version: str, changelog: pathlib.Path) -> str:
-    heading = re.compile(rf"^##\s+{re.escape(version)}(?:\s+-\s+.+)?$")
+    heading = re.compile(
+        rf"^##\s+(?:\[{re.escape(version)}\]\([^)]+\)|{re.escape(version)})(?:\s+-\s+.+)?$"
+    )
     next_heading = re.compile(r"^##\s+")
 
     lines = changelog.read_text().splitlines()
@@ -47,6 +49,10 @@ def build_changes_body(version: str, notes: str) -> str:
             lines.append("")
             continue
         if stripped.startswith("<!--") and stripped.endswith("-->"):
+            continue
+        if re.match(r"^\[[^\]]+\]:\s+https?://", stripped):
+            continue
+        if stripped.startswith("Full Changelog:"):
             continue
         if stripped.startswith("### "):
             lines.append(f"[b]{stripped[4:]}[/b]")
