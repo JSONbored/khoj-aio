@@ -190,18 +190,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_VERSION: ${{ steps.version.outputs.release_version }}
         run: |
-          release_revision="${RELEASE_VERSION##*.}"
-          if [[ ! "${release_revision}" =~ ^[0-9]+$ ]]; then
-            echo "Could not parse revision from release version ${RELEASE_VERSION}" >&2
-            exit 1
-          fi
-          aio_track="aio-v${release_revision}"
           gh workflow run "CI / Khoj-AIO" \
             --ref main \
             -f run_smoke_test=false \
             -f publish_images=true \
-            -f aio_track_override="${aio_track}"
-          echo "Triggered CI / Khoj-AIO workflow_dispatch on main with aio_track_override=${aio_track}."
+            -f release_tag_override="${RELEASE_VERSION}"
+          echo "Triggered CI / Khoj-AIO workflow_dispatch on main with release_tag_override=${RELEASE_VERSION}."
 
   full-release:
     if: ${{ github.event.inputs.action == 'full' && github.ref == 'refs/heads/main' }}
@@ -427,14 +421,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_VERSION: ${{ steps.merged_version.outputs.release_version }}
         run: |
-          release_revision="${RELEASE_VERSION##*.}"
-          if [[ ! "${release_revision}" =~ ^[0-9]+$ ]]; then
-            echo "Could not parse revision from release version ${RELEASE_VERSION}" >&2
-            exit 1
-          fi
-          aio_track="aio-v${release_revision}"
           gh workflow run "CI / Khoj-AIO" \
             --ref main \
             -f run_smoke_test=false \
             -f publish_images=true \
-            -f aio_track_override="${aio_track}"
+            -f release_tag_override="${RELEASE_VERSION}"

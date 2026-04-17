@@ -16,7 +16,7 @@ When a build-related change lands on `main`, the CI workflow publishes:
 
 - `latest`
 - the exact pinned upstream version
-- an explicit packaging line tag like `2.0.0-beta.28-aio-v1`
+- the exact wrapper release tag like `2.0.0-beta.28-aio.1`
 - `sha-<commit>`
 
 If Docker Hub credentials are configured, the same publish job pushes the matching tags to Docker Hub in parallel with GHCR.
@@ -33,7 +33,7 @@ When `khoj-aio.xml` changes on `main`, the build workflow opens or refreshes a p
 2. The workflow computes the next `upstream-aio.N` version, updates `CHANGELOG.md`, syncs the template `<Changes>` block, and opens a release PR.
 3. Review and merge that PR into `main`.
 4. Trigger **Release / Khoj-AIO** from `main` again with `action=publish`.
-5. The workflow reads the merged `CHANGELOG.md` entry, creates the Git tag and GitHub Release, then triggers the image-publish workflow with the correct `aio-vN` track tag.
+5. The workflow reads the merged `CHANGELOG.md` entry, creates the Git tag and GitHub Release, then triggers the image-publish workflow with the matching exact wrapper release tag.
 
 ### Full
 
