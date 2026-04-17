@@ -1,6 +1,6 @@
 [upstream]
 name = "Khoj"
-type = "github-tag"
+type = "github-release"
 repo = "khoj-ai/khoj"
 image = "khoj-ai/khoj"
 version_source = "dockerfile-arg"

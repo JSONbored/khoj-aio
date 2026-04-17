@@ -1,11 +1,16 @@
 # syntax=docker/dockerfile:1@sha256:4a43a54dd1fedceb30ba47e76cfcf2b47304f4161c0caeac2db1c61804ea3c91
+# checkov:skip=CKV_DOCKER_7:Upstream image is pinned by immutable digest instead of a mutable tag.
+# checkov:skip=CKV_DOCKER_8:The wrapper needs root for s6 init, package install, and managed internal PostgreSQL startup.
+# hadolint ignore=DL3002,DL3008,SC2086
 
 ARG UPSTREAM_VERSION=2.0.0-beta.28
-ARG UPSTREAM_IMAGE_DIGEST=sha256:41aa881c957a035207c11da239dc436d0f8a0c6a72b372651c5a48e08127043a
+ARG UPSTREAM_IMAGE_DIGEST=sha256:eb2e44669df44b51cb206b394dc0a00c782ac152dda02c97c9e3dac3d643dbb4
 FROM ghcr.io/khoj-ai/khoj@${UPSTREAM_IMAGE_DIGEST}
 
 ARG S6_OVERLAY_VERSION=3.1.6.2
 ARG TARGETARCH
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
 
@@ -20,9 +25,11 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteract
     . /etc/os-release && \
     echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    postgresql-14 \
-    postgresql-client-14 \
-    postgresql-14-pgvector && \
+    postgresql-15 \
+    postgresql-client-15 \
+    postgresql-15-pgvector && \
+    apt-mark manual postgresql-15 postgresql-client-15 postgresql-15-pgvector postgresql-common postgresql-client-common && \
+    python3 -m pip install --no-cache-dir --upgrade pillow==12.2.0 && \
     curl -L -o /tmp/s6-overlay-noarch.tar.xz https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz && \
     tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz && \
     case "${TARGETARCH}" in \
@@ -34,12 +41,41 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteract
     tar -C / -Jxpf /tmp/s6-overlay-${S6_ARCH}.tar.xz && \
     mkdir -p /root/.khoj /var/lib/postgresql/data /root/.cache/huggingface /root/.cache/torch/sentence_transformers /run/postgresql && \
     chown -R postgres:postgres /var/lib/postgresql /run/postgresql && \
+    DEBIAN_FRONTEND=noninteractive apt-get purge -y \
+      build-essential \
+      g++ \
+      g++-11 \
+      gcc \
+      gcc-11 \
+      libc-dev-bin \
+      libc6-dev \
+      libc-devtools \
+      libcrypt-dev \
+      libexpat1-dev \
+      libgcc-11-dev \
+      libnsl-dev \
+      libpython3.10-dev \
+      libstdc++-11-dev \
+      libtirpc-dev \
+      linux-libc-dev \
+      make \
+      python3-dev \
+      python3.10-dev \
+      rpcsvc-proto && \
+    DEBIAN_FRONTEND=noninteractive apt-get autoremove -y --purge && \
+    rm -f /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/certs/ssl-cert-snakeoil.pem && \
     rm -rf /tmp/* /var/lib/apt/lists/*
 
 COPY rootfs/ /
 
 RUN find /etc/cont-init.d -type f -exec chmod +x {} \; && \
     find /etc/services.d -type f -name "run" -exec chmod +x {} \;
+
+LABEL org.opencontainers.image.source="https://github.com/JSONbored/khoj-aio" \
+      org.opencontainers.image.title="khoj-aio" \
+      org.opencontainers.image.description="Unraid-first AIO wrapper image for Khoj with an internal PostgreSQL default" \
+      io.jsonbored.wrapper.name="khoj-aio" \
+      io.jsonbored.wrapper.type="unraid-aio"
 
 VOLUME ["/root/.khoj", "/var/lib/postgresql/data", "/root/.cache/huggingface", "/root/.cache/torch/sentence_transformers"]
 
