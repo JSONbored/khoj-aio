@@ -1,7 +1,4 @@
-# Following source doesn't work in most setups
+# Keep only repo-wide shell source suppressions here; Dockerfile-specific rule waivers stay inline.
 ignored:
   - SC1090
   - SC1091
-  - DL3002
-  - DL3008
-  - SC2086

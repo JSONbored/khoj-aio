@@ -1,8 +1,6 @@
 # syntax=docker/dockerfile:1@sha256:4a43a54dd1fedceb30ba47e76cfcf2b47304f4161c0caeac2db1c61804ea3c91
 # checkov:skip=CKV_DOCKER_7:Upstream image is pinned by immutable digest instead of a mutable tag.
 # checkov:skip=CKV_DOCKER_8:The wrapper needs root for s6 init, package install, and managed internal PostgreSQL startup.
-# hadolint ignore=DL3002,DL3008,SC2086
-
 ARG UPSTREAM_VERSION=2.0.0-beta.28
 ARG UPSTREAM_IMAGE_DIGEST=sha256:eb2e44669df44b51cb206b394dc0a00c782ac152dda02c97c9e3dac3d643dbb4
 FROM ghcr.io/khoj-ai/khoj@${UPSTREAM_IMAGE_DIGEST}
@@ -12,8 +10,10 @@ ARG TARGETARCH
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# hadolint ignore=DL3002
 USER root
 
+# hadolint ignore=DL3008,SC2086
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     curl \
     xz-utils \

@@ -34,6 +34,8 @@ if [[ -z ${PGPASS} ]]; then
 	exit 1
 fi
 
+PGPASS_SQL="${PGPASS//\'/\'\'}"
+
 mkdir -p "${PGDATA}" /run/postgresql
 chown -R postgres:postgres "${PGDATA}" /run/postgresql
 chmod 700 "${PGDATA}"
@@ -48,7 +50,7 @@ if ! su postgres -s /bin/sh -c "${pg_status_cmd}" >/dev/null 2>&1; then
 	su postgres -s /bin/sh -c "\"${PG_BIN}/pg_ctl\" -D \"${PGDATA}\" -w start >/dev/null"
 fi
 
-su postgres -s /bin/sh -c "psql -v ON_ERROR_STOP=1 -c \"DO \\\$\\\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='${PGUSER}') THEN CREATE ROLE ${PGUSER} LOGIN PASSWORD '${PGPASS}'; ELSE ALTER ROLE ${PGUSER} WITH LOGIN PASSWORD '${PGPASS}'; END IF; END \\\$\\\$;\" >/dev/null"
+su postgres -s /bin/sh -c "psql -v ON_ERROR_STOP=1 -c \"DO \\\$\\\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='${PGUSER}') THEN CREATE ROLE ${PGUSER} LOGIN PASSWORD '${PGPASS_SQL}'; ELSE ALTER ROLE ${PGUSER} WITH LOGIN PASSWORD '${PGPASS_SQL}'; END IF; END \\\$\\\$;\" >/dev/null"
 
 su postgres -s /bin/sh -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='${PGDB}'\" | grep -q 1" ||
 	su postgres -s /bin/sh -c "psql -c \"CREATE DATABASE ${PGDB} OWNER ${PGUSER};\" >/dev/null"

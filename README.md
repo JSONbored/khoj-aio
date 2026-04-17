@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="https://socialify.git.ci/JSONbored/khoj-aio/image?custom_description=Unraid-first+All-in-One+Khoj+image+with+beginner-safe+defaults+and+a+power-user+config+surface.&custom_language=Dockerfile&description=1&font=Raleway&forks=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F64120301%3Fv%3D4&name=1&owner=1&pattern=Solid&stargazers=1&theme=Dark" alt="khoj-aio" width="640" height="320" />
+<img src="https://socialify.git.ci/JSONbored/khoj-aio/image?custom_description=All-in-One+Unraid+container+for+Khoj%2C+a+self-hosted+AI+second+brain.+Turn+any+online+or+local+LLM+into+your+personal%2C+autonomous+AI.&custom_language=Dockerfile&description=1&font=Raleway&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F134046886%3Fs%3D200%26v%3D4&name=1&owner=1&pattern=Circuit+Board&pulls=1&stargazers=1&theme=Light" alt="khoj-aio" width="640" height="320" />
 
 </div>
 
