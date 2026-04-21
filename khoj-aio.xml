@@ -30,18 +30,12 @@
 - This image intentionally keeps PostgreSQL bundled because that is the critical first-boot dependency for Khoj on Unraid. Search, sandbox, and provider integrations remain optional advanced add-ons.&#xD;
 - If you expose Khoj outside your LAN, set strong admin credentials, configure [code]KHOJ_DOMAIN[/code] and [code]KHOJ_ALLOWED_DOMAIN[/code] correctly, and strongly consider disabling anonymous mode.&#xD;
 - Upstream currently documents Google OAuth mainly against the prod [code]khoj-cloud[/code] image, so the Google auth variables below should be treated as expert-only and tested carefully in this standard self-host image flow.</Overview>
-  <Changes>[b]Latest release[/b]&#xD;
-- 2.0.0-beta.28-aio.2&#xD;
-[b]Fixes[/b]&#xD;
-- Skip no-op release drafts&#xD;
-- Make releases manual and gate heavy workflows&#xD;
-- Harden publish and changelog range&#xD;
-- Align khoj-aio with current AIO baseline&#xD;
-- Apply CodeRabbit follow-up hardening&#xD;
-- Harden smoke-build package fetches&#xD;
-&#xD;
-&#xD;
-Full changelog and release notes: [url=https://github.com/JSONbored/khoj-aio/releases]GitHub Releases[/url]</Changes>
+  <Changes>### 2026-04-17&#xD;
+- Release 2.0.0-beta.28-aio.2.&#xD;
+- Align khoj-aio with the current AIO baseline.&#xD;
+- Improve release workflow behavior and publish handling.&#xD;
+- Harden smoke-build and follow-up runtime checks.&#xD;
+</Changes>
   <Category>AI: Productivity: Tools:Utilities</Category>
   <WebUI>http://[IP]:[PORT:42110]</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/JSONbored/awesome-unraid/main/khoj-aio.xml</TemplateURL>
