@@ -5,8 +5,12 @@ on:
     branches: [main]
     paths:
       - Dockerfile
+      - pyproject.toml
+      - requirements-dev.txt
       - rootfs/**
       - scripts/**
+      - tests/**
+      - .trunk/**
       - upstream.toml
       - khoj-aio.xml
       - renovate.json
@@ -15,41 +19,24 @@ on:
     branches: [main]
     paths:
       - Dockerfile
+      - pyproject.toml
+      - requirements-dev.txt
       - rootfs/**
       - scripts/**
+      - tests/**
+      - .trunk/**
       - upstream.toml
       - khoj-aio.xml
       - renovate.json
       - .github/workflows/**
   workflow_dispatch:
-    # checkov:skip=CKV_GHA_7:Manual publish and sync flows intentionally require bounded operator inputs.
-    inputs:
-      run_smoke_test:
-        description: "Run the smoke-test job"
-        required: false
-        default: false
-        type: boolean
-      publish_images:
-        description: "Publish images to GHCR/Docker Hub"
-        required: false
-        default: false
-        type: boolean
-      sync_awesome_unraid:
-        description: "Open or refresh the awesome-unraid sync pull request"
-        required: false
-        default: false
-        type: boolean
-      release_tag_override:
-        description: "Optional exact release tag override (example: 2.0.0-beta.28-aio.3)"
-        required: false
-        default: ""
-        type: string
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   REGISTRY: ghcr.io
   IMAGE_NAME: jsonbored/khoj-aio
   PUBLISH_PLATFORMS: linux/amd64,linux/arm64
+  TRUNK_ORG_URL_SLUG: aethereal
 
 permissions:
   contents: read
@@ -68,7 +55,7 @@ jobs:
       xml_related: ${{ steps.filter.outputs.xml_related }}
       renovate_related: ${{ steps.filter.outputs.renovate_related }}
       tooling_related: ${{ steps.filter.outputs.tooling_related }}
-      run_smoke_requested: ${{ steps.filter.outputs.run_smoke_requested }}
+      run_tests_requested: ${{ steps.filter.outputs.run_tests_requested }}
       publish_requested: ${{ steps.filter.outputs.publish_requested }}
     steps:
       - name: Checkout
@@ -85,14 +72,10 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           GITHUB_SHA_VALUE: ${{ github.sha }}
           GITHUB_REF_VALUE: ${{ github.ref }}
-          RUN_SMOKE_TEST_INPUT: ${{ github.event.inputs.run_smoke_test || '' }}
-          PUBLISH_IMAGES_INPUT: ${{ github.event.inputs.publish_images || '' }}
         run: |
           python3 scripts/ci_flags.py \
             --event-name "${EVENT_NAME}" \
-            --ref "${GITHUB_REF_VALUE}" \
-            --run-smoke-test-input "${RUN_SMOKE_TEST_INPUT}" \
-            --publish-images-input "${PUBLISH_IMAGES_INPUT}" >> "${GITHUB_OUTPUT}"
+            --ref "${GITHUB_REF_VALUE}" >> "${GITHUB_OUTPUT}"
 
           if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
             echo "build_related=true" >> "${GITHUB_OUTPUT}"
@@ -149,13 +132,13 @@ jobs:
           while IFS= read -r path; do
             [[ -z "${path}" ]] && continue
             case "${path}" in
-              Dockerfile|upstream.toml|rootfs/*)
+              Dockerfile|pyproject.toml|requirements-dev.txt|upstream.toml|rootfs/*|tests/*)
                 build_related=true
                 ;;
               khoj-aio.xml)
                 xml_related=true
                 ;;
-              scripts/*|.github/workflows/*)
+              scripts/*|.github/workflows/*|.trunk/*)
                 tooling_related=true
                 ;;
               renovate.json)
@@ -182,10 +165,9 @@ jobs:
       - name: Validate shell and python scripts
         if: ${{ needs.detect-changes.outputs.build_related == 'true' || needs.detect-changes.outputs.tooling_related == 'true' }}
         run: |
-          bash -n scripts/smoke-test.sh
+          bash -n scripts/validate-derived-repo.sh
           PYTHONPYCACHEPREFIX=/tmp/khoj-aio-pyc python3 -m py_compile scripts/ci_flags.py
           PYTHONPYCACHEPREFIX=/tmp/khoj-aio-pyc python3 -m py_compile scripts/check-upstream.py
-          PYTHONPYCACHEPREFIX=/tmp/khoj-aio-pyc python3 -m py_compile scripts/test-ci-flags.py
           PYTHONPYCACHEPREFIX=/tmp/khoj-aio-pyc python3 -m py_compile scripts/validate-template.py
           PYTHONPYCACHEPREFIX=/tmp/khoj-aio-pyc python3 -m py_compile scripts/update-template-changes.py
           PYTHONPYCACHEPREFIX=/tmp/khoj-aio-pyc python3 -m py_compile scripts/release.py
@@ -195,12 +177,19 @@ jobs:
       - name: Validate CI flag resolver behavior
         if: ${{ needs.detect-changes.outputs.build_related == 'true' || needs.detect-changes.outputs.tooling_related == 'true' }}
         run: |
-          python3 scripts/test-ci-flags.py
+          python3 -m venv .venv-ci
+          .venv-ci/bin/pip install -r requirements-dev.txt
+          .venv-ci/bin/pytest tests/unit/test_ci_flags.py
 
       - name: Validate XML
         if: ${{ needs.detect-changes.outputs.build_related == 'true' || needs.detect-changes.outputs.xml_related == 'true' }}
         run: |
           python3 scripts/validate-template.py
+
+      - name: Validate derived repo placeholders
+        run: |
+          chmod +x scripts/validate-derived-repo.sh
+          ./scripts/validate-derived-repo.sh .
 
       - name: Validate Renovate config
         if: ${{ needs.detect-changes.outputs.renovate_related == 'true' }}
@@ -253,8 +242,8 @@ jobs:
       - name: Dependency review
         uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
 
-  smoke-test:
-    if: ${{ needs.detect-changes.outputs.build_related == 'true' }}
+  unit-tests:
+    if: ${{ needs.detect-changes.outputs.build_related == 'true' || needs.detect-changes.outputs.xml_related == 'true' || needs.detect-changes.outputs.tooling_related == 'true' }}
     needs:
       - detect-changes
       - validate-template
@@ -262,58 +251,111 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      TRUNK_API_TOKEN: ${{ secrets.TRUNK_API_TOKEN }}
     steps:
-      - name: Skip smoke test when not requested
-        if: ${{ needs.detect-changes.outputs.run_smoke_requested != 'true' }}
-        run: |
-          echo "Smoke test not requested for this run."
-
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        if: ${{ needs.detect-changes.outputs.run_smoke_requested == 'true' }}
 
-      - name: Set up Docker Buildx
-        if: ${{ needs.detect-changes.outputs.run_smoke_requested == 'true' }}
-        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+      - name: Install pytest
+        run: |
+          python3 -m venv .venv-ci
+          .venv-ci/bin/pip install -r requirements-dev.txt
 
-      - name: Build local test image
-        if: ${{ needs.detect-changes.outputs.run_smoke_requested == 'true' }}
-        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+      - name: Run pytest unit tests
+        id: unit_pytest
+        run: |
+          mkdir -p reports
+          rm -f reports/pytest-unit.xml
+          set +e
+          .venv-ci/bin/pytest \
+            tests/unit \
+            tests/template \
+            --junit-xml=reports/pytest-unit.xml \
+            -o junit_family=xunit1
+          status=$?
+          echo "exit_code=${status}" >> "${GITHUB_OUTPUT}"
+          exit 0
+
+      - name: Upload unit test results to Trunk
+        if: ${{ always() && env.TRUNK_API_TOKEN != '' }}
+        continue-on-error: true
+        uses: trunk-io/analytics-uploader@0e6c416c9d47c105654657984e5e4f0506dd84aa # v1
+        env:
+          TRUNK_API_TOKEN: ${{ secrets.TRUNK_API_TOKEN }}
         with:
-          context: .
-          platforms: linux/amd64
-          load: true
-          tags: khoj-aio:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          junit-paths: reports/pytest-unit.xml
+          org-slug: ${{ env.TRUNK_ORG_URL_SLUG }}
+          token: ${{ env.TRUNK_API_TOKEN }}
 
-      - name: Smoke test
-        if: ${{ needs.detect-changes.outputs.run_smoke_requested == 'true' }}
-        run: |
-          chmod +x scripts/smoke-test.sh
-          export KEEP_SMOKE_ARTIFACTS=1
-          export READY_TIMEOUT_SECONDS=600
-          export HTTP_TIMEOUT_SECONDS=120
-          bash -x ./scripts/smoke-test.sh khoj-aio:ci
+      - name: Fail if unit tests failed
+        if: ${{ steps.unit_pytest.outputs.exit_code != '0' }}
+        run: exit 1
 
-      - name: Dump smoke test diagnostics
-        if: failure()
-        run: |
-          echo "Active containers:"
-          docker ps -a
-          echo
-          echo "Inspecting smoke container:"
-          docker inspect khoj-aio-smoke || true
-          echo
-          echo "Container logs:"
-          docker logs khoj-aio-smoke || true
-
-  publish:
-    if: ${{ needs.detect-changes.outputs.build_related == 'true' && github.event_name != 'pull_request' && needs.detect-changes.outputs.publish_requested == 'true' }}
+  integration-tests:
+    if: ${{ needs.detect-changes.outputs.build_related == 'true' && needs.detect-changes.outputs.run_tests_requested == 'true' }}
     needs:
       - detect-changes
       - validate-template
       - pinned-actions
-      - smoke-test
+      - unit-tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      TRUNK_API_TOKEN: ${{ secrets.TRUNK_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install pytest
+        run: |
+          python3 -m venv .venv-ci
+          .venv-ci/bin/pip install -r requirements-dev.txt
+
+      - name: Run pytest integration tests
+        id: integration_pytest
+        run: |
+          mkdir -p reports
+          rm -f reports/pytest-integration.xml
+          set +e
+          .venv-ci/bin/pytest \
+            tests/integration \
+            -m integration \
+            --junit-xml=reports/pytest-integration.xml \
+            -o junit_family=xunit1
+          status=$?
+          echo "exit_code=${status}" >> "${GITHUB_OUTPUT}"
+          exit 0
+
+      - name: Upload integration test results to Trunk
+        if: ${{ always() && env.TRUNK_API_TOKEN != '' }}
+        continue-on-error: true
+        uses: trunk-io/analytics-uploader@0e6c416c9d47c105654657984e5e4f0506dd84aa # v1
+        env:
+          TRUNK_API_TOKEN: ${{ secrets.TRUNK_API_TOKEN }}
+        with:
+          junit-paths: reports/pytest-integration.xml
+          org-slug: ${{ env.TRUNK_ORG_URL_SLUG }}
+          token: ${{ env.TRUNK_API_TOKEN }}
+
+      - name: Dump Docker diagnostics
+        if: failure()
+        run: |
+          docker ps -a
+          echo
+          docker images
+
+      - name: Fail if integration tests failed
+        if: ${{ steps.integration_pytest.outputs.exit_code != '0' }}
+        run: exit 1
+
+  publish:
+    if: ${{ needs.detect-changes.outputs.build_related == 'true' && vars.ENABLE_AIO_AUTOMATION == 'true' && github.event_name == 'push' && needs.detect-changes.outputs.publish_requested == 'true' && (needs.integration-tests.result == 'success' || needs.integration-tests.result == 'skipped') }}
+    needs:
+      - detect-changes
+      - validate-template
+      - pinned-actions
+      - unit-tests
+      - integration-tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -364,7 +406,7 @@ jobs:
       - name: Compute image tags
         id: prep
         env:
-          RELEASE_TAG_OVERRIDE: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag_override || '' }}
+          RELEASE_TAG_OVERRIDE: ""
           DOCKERHUB_ENABLED: ${{ steps.dockerhub.outputs.enabled }}
           DOCKERHUB_IMAGE_NAME: ${{ steps.dockerhub.outputs.image_name }}
         run: |
@@ -437,7 +479,7 @@ jobs:
           load: false
 
   sync-awesome-unraid:
-    if: ${{ needs.detect-changes.outputs.xml_related == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.sync_awesome_unraid == 'true')) }}
+    if: ${{ needs.detect-changes.outputs.xml_related == 'true' && vars.ENABLE_AIO_AUTOMATION == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
     needs:
       - detect-changes
       - validate-template
@@ -482,7 +524,7 @@ jobs:
           path: target-repo
           add-paths: khoj-aio.xml
           commit-message: "chore: auto-sync khoj-aio.xml from upstream"
-          branch: "sync-awesome-unraid/khoj-aio"
+          branch: sync-awesome-unraid/khoj-aio
           delete-branch: true
           base: main
           title: "chore: sync khoj-aio template"
