@@ -81,6 +81,8 @@ LABEL org.opencontainers.image.source="https://github.com/JSONbored/khoj-aio" \
 
 VOLUME ["/root/.khoj", "/var/lib/postgresql/data", "/root/.cache/huggingface", "/root/.cache/torch/sentence_transformers"]
 
+ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=300000
+
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -fsS http://localhost:42110/ >/dev/null || exit 1
 

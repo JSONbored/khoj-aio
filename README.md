@@ -66,8 +66,6 @@ See [docs/releases.md](docs/releases.md) for the release workflow details.
 Required local validation is pytest-first:
 
 ```bash
-STRICT_PLACEHOLDERS=true bash scripts/validate-derived-repo.sh .
-python3 scripts/validate-template.py
 python3 -m venv .venv-local
 .venv-local/bin/pip install -r requirements-dev.txt
 .venv-local/bin/pytest tests/unit tests/template --junit-xml=reports/pytest-unit.xml -o junit_family=xunit1
