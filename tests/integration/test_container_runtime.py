@@ -3,13 +3,14 @@ from __future__ import annotations
 import time
 import uuid
 from contextlib import contextmanager
-from pathlib import Path
-from tempfile import TemporaryDirectory
 
 import pytest
 
 from tests.helpers import (
+    container_file_size,
+    container_path_exists,
     docker_available,
+    docker_volume,
     ensure_pytest_image,
     reserve_host_port,
     run_command,
@@ -47,7 +48,7 @@ def wait_for_http(name: str, host_port: int, timeout: int = 600) -> None:
 
 
 @contextmanager
-def container(config_dir: Path, pgdata_dir: Path):
+def container(config_volume: str, pgdata_volume: str):
     name = f"khoj-aio-pytest-{uuid.uuid4().hex[:10]}"
     host_port = reserve_host_port()
     command = [
@@ -61,9 +62,9 @@ def container(config_dir: Path, pgdata_dir: Path):
         "-p",
         f"{host_port}:42110",
         "-v",
-        f"{config_dir}:/root/.khoj",
+        f"{config_volume}:/root/.khoj",
         "-v",
-        f"{pgdata_dir}:/var/lib/postgresql/data",
+        f"{pgdata_volume}:/var/lib/postgresql/data",
         IMAGE_TAG,
     ]
     run_command(command)
@@ -82,13 +83,17 @@ def build_image() -> None:
 
 def test_happy_path_boot_and_restart() -> None:
     with (
-        TemporaryDirectory(prefix="khoj-aio-config-") as config_dir,
-        TemporaryDirectory(prefix="khoj-aio-pg-") as pgdata_dir,
+        docker_volume("khoj-aio-config") as config_volume,
+        docker_volume("khoj-aio-pg") as pgdata_volume,
     ):
-        with container(Path(config_dir), Path(pgdata_dir)) as (name, host_port):
+        with container(config_volume, pgdata_volume) as (name, host_port):
             wait_for_http(name, host_port)
-            assert Path(config_dir, "aio", "generated.env").is_file()  # nosec B101
-            assert Path(pgdata_dir, "PG_VERSION").is_file()  # nosec B101
+            assert container_path_exists(
+                name, "/root/.khoj/aio/generated.env"
+            )  # nosec B101
+            assert container_path_exists(
+                name, "/var/lib/postgresql/data/PG_VERSION"
+            )  # nosec B101
             run_command(
                 [
                     "docker",
@@ -105,5 +110,5 @@ def test_happy_path_boot_and_restart() -> None:
             run_command(["docker", "restart", name])
             wait_for_http(name, host_port)
             assert (
-                Path(config_dir, "aio", "generated.env").stat().st_size > 0
+                container_file_size(name, "/root/.khoj/aio/generated.env") > 0
             )  # nosec B101
