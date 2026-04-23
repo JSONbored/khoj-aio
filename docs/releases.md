@@ -16,8 +16,9 @@ When a build-related change lands on `main`, the CI workflow publishes:
 
 - `latest`
 - the exact pinned upstream version
-- the exact wrapper release tag like `2.0.0-beta.28-aio.1`
 - `sha-<commit>`
+
+Release commits also publish the exact immutable wrapper release tag, for example `2.0.0-beta.28-aio.1`. Ordinary `main` pushes do not overwrite that release tag.
 
 If Docker Hub credentials are configured, the same publish job pushes the matching tags to Docker Hub in parallel with GHCR.
 
