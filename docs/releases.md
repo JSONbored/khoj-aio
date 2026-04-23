@@ -16,8 +16,9 @@ When a build-related change lands on `main`, the CI workflow publishes:
 
 - `latest`
 - the exact pinned upstream version
-- the exact wrapper release tag like `2.0.0-beta.28-aio.1`
 - `sha-<commit>`
+
+Release commits also publish the exact immutable wrapper release tag, for example `2.0.0-beta.28-aio.1`. Ordinary `main` pushes do not overwrite that release tag.
 
 If Docker Hub credentials are configured, the same publish job pushes the matching tags to Docker Hub in parallel with GHCR.
 
@@ -27,19 +28,9 @@ When `khoj-aio.xml` changes on `main`, the build workflow opens or refreshes a p
 
 ## Release flow
 
-### Standard
-
-1. Trigger **Release / Khoj-AIO** from `main` with `action=prepare`.
-2. The workflow computes the next `upstream-aio.N` version, updates `CHANGELOG.md`, syncs the template `<Changes>` block, and opens a release PR.
+1. Trigger **Prepare Release / Khoj-AIO** from `main`.
+2. The workflow computes the next `upstream-aio.N` version, updates `CHANGELOG.md`, syncs the XML `<Changes>` block, and opens a release PR.
 3. Review and merge that PR into `main`.
-4. Trigger **Release / Khoj-AIO** from `main` again with `action=publish`.
-5. The workflow reads the merged `CHANGELOG.md` entry, creates the Git tag and GitHub Release, then triggers the image-publish workflow with the matching exact wrapper release tag.
-
-### Full
-
-If you want the workflow to handle the whole release path:
-
-1. Trigger **Release / Khoj-AIO** from `main` with `action=full`.
-2. The workflow prepares the release PR, optionally auto-merges it, then triggers the publish step.
-
-Use `full` only when branch protections and tokens are already configured correctly.
+4. Wait for the `CI / Khoj-AIO` run on the release commit to finish green. That same `main` push also publishes the updated package tags automatically.
+5. Trigger **Publish Release / Khoj-AIO** from `main`.
+6. The workflow verifies CI on the exact release commit, creates the Git tag if needed, and publishes the GitHub Release.
