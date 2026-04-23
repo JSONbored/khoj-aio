@@ -1,12 +1,6 @@
 # khoj-aio
 
-<div align="center">
-
-<img src="https://socialify.git.ci/JSONbored/khoj-aio/image?custom_description=All-in-One+Unraid+container+for+Khoj%2C+a+self-hosted+AI+second+brain.+Turn+any+online+or+local+LLM+into+your+personal%2C+autonomous+AI.&custom_language=Dockerfile&description=1&font=Raleway&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F134046886%3Fs%3D200%26v%3D4&name=1&owner=1&pattern=Circuit+Board&pulls=1&stargazers=1&theme=Light" alt="khoj-aio" width="640" height="320" />
-
-</div>
-
----
+![khoj-aio](https://socialify.git.ci/JSONbored/khoj-aio/image?custom_description=All-in-One+Unraid+container+for+Khoj%2C+a+self-hosted+AI+second+brain.+Turn+any+online+or+local+LLM+into+your+personal%2C+autonomous+AI.&custom_language=Dockerfile&description=1&font=Raleway&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F134046886%3Fs%3D200%26v%3D4&name=1&owner=1&pattern=Circuit+Board&pulls=1&stargazers=1&theme=Light)
 
 An Unraid-first, single-container deployment of [Khoj](https://github.com/khoj-ai/khoj) for people who want the easiest reliable self-hosted install without manually wiring PostgreSQL or reworking the upstream compose stack for Unraid.
 
@@ -69,12 +63,23 @@ See [docs/releases.md](docs/releases.md) for the release workflow details.
 
 ## Validation
 
-Local validation is built around:
+Required local validation is pytest-first:
 
-- XML validation for the audited template surface
-- shell and Python syntax checks
-- local Docker build on `linux/amd64`
-- end-to-end smoke coverage for first boot, generated credentials, internal PostgreSQL readiness, restart, and persistence
+```bash
+python3 -m venv .venv-local
+.venv-local/bin/pip install -r requirements-dev.txt
+.venv-local/bin/pytest tests/unit tests/template --junit-xml=reports/pytest-unit.xml -o junit_family=xunit1
+.venv-local/bin/pytest tests/integration -m integration --junit-xml=reports/pytest-integration.xml -o junit_family=xunit1
+./trunk-analytics-cli validate --junit-paths "reports/pytest-unit.xml,reports/pytest-integration.xml"
+trunk check --show-existing --all
+```
+
+CI cost model:
+
+- relevant PRs and `main` pushes run the fast validation layers first
+- Docker-backed integration tests run for build-relevant changes, for `main` release-metadata commits when publish is still in play, and for manual dispatches
+- image publish stays gated behind the integration suite instead of treating skipped integration as acceptable
+- local Docker validation stays explicit instead of hiding inside every routine commit hook
 
 ## Support
 

@@ -4,13 +4,24 @@ from __future__ import annotations
 import argparse
 import pathlib
 import re
-import subprocess  # nosec B404
+import subprocess  # nosec - release helpers shell out only to trusted local git
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_CHANGELOG = ROOT / "CHANGELOG.md"
 DEFAULT_DOCKERFILE = ROOT / "Dockerfile"
 DEFAULT_UPSTREAM = ROOT / "upstream.toml"
 AIO_TAG_PATTERN = "*-aio.*"
+GIT_BIN = "/usr/bin/git"
+
+
+def git_output(*args: str) -> str:
+    return subprocess.check_output([GIT_BIN, *args], cwd=ROOT, text=True)  # nosec
+
+
+def git_completed(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [GIT_BIN, *args], cwd=ROOT, text=True, capture_output=True, check=False
+    )  # nosec
 
 
 def load_upstream_version_key(path: pathlib.Path) -> str:
@@ -42,18 +53,13 @@ def read_upstream_version(dockerfile: pathlib.Path, upstream: pathlib.Path) -> s
 
 
 def git_tags() -> list[str]:
-    output = subprocess.check_output(
-        ["git", "tag", "--list"], cwd=ROOT, text=True
-    )  # nosec B603,B607
+    output = git_output("tag", "--list")
     return [line.strip() for line in output.splitlines() if line.strip()]
 
 
 def latest_aio_release_tag() -> str | None:
-    completed = subprocess.run(  # nosec B603,B607
-        ["git", "describe", "--tags", "--abbrev=0", "--match", AIO_TAG_PATTERN, "HEAD"],
-        cwd=ROOT,
-        text=True,
-        capture_output=True,
+    completed = git_completed(
+        "describe", "--tags", "--abbrev=0", "--match", AIO_TAG_PATTERN, "HEAD"
     )
     if completed.returncode != 0:
         return None
@@ -79,9 +85,7 @@ def has_unreleased_changes(dockerfile: pathlib.Path, upstream: pathlib.Path) -> 
     latest_tag = latest_aio_release_tag()
     if latest_tag is None:
         return True
-    output = subprocess.check_output(  # nosec B603,B607
-        ["git", "log", "--format=%s", f"{latest_tag}..HEAD"], cwd=ROOT, text=True
-    )
+    output = git_output("log", "--format=%s", f"{latest_tag}..HEAD")
     return any(line.strip() for line in output.splitlines())
 
 
@@ -137,9 +141,7 @@ def find_release_commit(version: str) -> str:
     exact = f"chore(release): {version}"
     with_suffix = re.compile(rf"^{re.escape(exact)} \(#\d+\)$")
 
-    output = subprocess.check_output(  # nosec B603,B607
-        ["git", "log", "--format=%H\t%s", "HEAD"], cwd=ROOT, text=True
-    )
+    output = git_output("log", "--format=%H\t%s", "HEAD")
     for line in output.splitlines():
         if not line.strip():
             continue

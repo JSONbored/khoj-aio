@@ -2,7 +2,7 @@ name: Check Khoj Upstream
 
 on:
   schedule:
-    - cron: "17 7 * * 1"
+    - cron: "17 7 * * 1" # yamllint disable-line rule:quoted-strings
   workflow_dispatch:
 
 env:
