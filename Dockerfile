@@ -84,6 +84,7 @@ VOLUME ["/root/.khoj", "/var/lib/postgresql/data", "/root/.cache/huggingface", "
 EXPOSE 42110
 
 ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=300000
+ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -fsS http://localhost:42110/ >/dev/null || exit 1
