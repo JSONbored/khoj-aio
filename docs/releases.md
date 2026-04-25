@@ -31,6 +31,6 @@ When `khoj-aio.xml` changes on `main`, the build workflow opens or refreshes a p
 1. Trigger **Prepare Release / Khoj-AIO** from `main`.
 2. The workflow computes the next `upstream-aio.N` version, updates `CHANGELOG.md`, syncs the XML `<Changes>` block, and opens a release PR.
 3. Review and merge that PR into `main`.
-4. Wait for the `CI / Khoj-AIO` run on the release commit to finish green. That same `main` push also publishes the updated package tags automatically.
+4. Wait for the `CI / Khoj-AIO` run on the release target commit to finish green. That same `main` push also publishes the updated package tags automatically.
 5. Trigger **Publish Release / Khoj-AIO** from `main`.
-6. The workflow verifies CI on the exact release commit, creates the Git tag if needed, and publishes the GitHub Release.
+6. The workflow verifies CI on the exact release target commit, creates the Git tag if needed, and publishes the GitHub Release.
