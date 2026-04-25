@@ -1,6 +1,47 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [2.0.0-beta.28-aio.3](https://github.com/JSONbored/khoj-aio/releases/tag/2.0.0-beta.28-aio.3) - 2026-04-25
+### CI
+- Consolidate validation into pytest suite by @JSONbored
+- Optimize pytest gating and Trunk uploads by @JSONbored
+- Preserve changelog history and publish release commits by @JSONbored
+- Capture integration diagnostics on pytest failure by @JSONbored
+- Remove automation flag and align publish flow by @JSONbored
+- Centralize trunk config and gate release tags by @JSONbored
+- Accept squash release titles by @JSONbored
+- Pin package tags to release targets by @JSONbored
+- Fetch history for release tag lookup by @JSONbored
+- Consolidate pytest workflow steps by @JSONbored
+
+
+### Dependency Updates
+- Update pytest and trunk analytics uploader by @JSONbored
+
+
+### Documentation
+- Fix khoj-aio category metadata by @JSONbored
+
+
+### Fixes
+- Preserve history and harden full flow by @JSONbored
+- Align image tags with release versions by @JSONbored
+- Make derived repo validator portable by @JSONbored
+- Use workflow file selector for CI checks by @JSONbored
+- Classify local action changes by @JSONbored
+- Fail fast on init errors by @JSONbored
+
+
+### Other Changes
+- Merge branch 'main' into codex/fix-unraid-ca-categories by @JSONbored
+- Update CI to run pytest and simplify release prep by @JSONbored
+- Merge branch 'main' into codex/release-target-immutability by @JSONbored
+
+
+### Tests
+- Use docker volumes for runtime persistence by @JSONbored
+- Cover action and container contracts by @JSONbored
+
 
 ## 2.0.0-beta.28-aio.2 - 2026-04-17
 
