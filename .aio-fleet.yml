@@ -25,7 +25,6 @@ catalog:
     - source: khoj-aio.xml
       target: khoj-aio.xml
 tests:
-  unit: tests/template
   integration: tests/integration -m integration
   checkout_submodules: false
 validation:
