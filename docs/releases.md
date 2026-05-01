@@ -12,7 +12,7 @@
 
 `main` is the package-publishing branch for this repo.
 
-When a build-related change lands on `main`, the CI workflow publishes:
+When a build-related change lands on `main`, the central `aio-fleet` publish path publishes:
 
 - `latest`
 - the exact pinned upstream version
@@ -20,17 +20,16 @@ When a build-related change lands on `main`, the CI workflow publishes:
 
 Release commits also publish the exact immutable wrapper release tag, for example `2.0.0-beta.28-aio.1`. Ordinary `main` pushes do not overwrite that release tag.
 
-Publish jobs require Docker Hub credentials and push the matching tags to Docker Hub directly.
+Central publish uses Docker Hub credentials and the shared GHCR token stored in `aio-fleet`.
 
 ## Template sync behavior
 
-When `khoj-aio.xml` changes on `main`, the build workflow opens or refreshes a pull request against `awesome-unraid` instead of pushing directly. This keeps protected-branch rules intact.
+When catalog XML changes, `aio-fleet` opens or refreshes the `awesome-unraid` catalog pull request instead of pushing directly. This keeps protected-branch rules intact.
 
 ## Release flow
 
-1. Trigger **Prepare Release / Khoj-AIO** from `main`.
-2. The workflow computes the next `upstream-aio.N` version, updates `CHANGELOG.md`, syncs the XML `<Changes>` block, and opens a release PR.
+1. From `aio-fleet`, run `python -m aio_fleet release status --repo khoj-aio` to inspect the next release.
+2. Run `python -m aio_fleet release prepare --repo khoj-aio` on a release branch, then open a `chore(release): <version>` PR.
 3. Review and merge that PR into `main`.
-4. Wait for the `CI / Khoj-AIO` run on the release target commit to finish green. That same `main` push also publishes the updated package tags automatically.
-5. Trigger **Publish Release / Khoj-AIO** from `main`.
-6. The workflow verifies CI on the exact release target commit, creates the Git tag if needed, and publishes the GitHub Release.
+4. Run the central `aio-fleet` control check for the release target commit with publish enabled, and require `aio-fleet / required` to pass.
+5. Run `python -m aio_fleet release publish --repo khoj-aio` from `aio-fleet` to create the GitHub Release.
