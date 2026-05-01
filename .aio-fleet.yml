@@ -1,0 +1,29 @@
+schema_version: 1
+repo: khoj-aio
+github_repo: JSONbored/khoj-aio
+app_slug: khoj-aio
+image:
+  name: jsonbored/khoj-aio
+  cache_scope: khoj-aio-image
+  pytest_tag: khoj-aio:pytest
+  publish_platforms: linux/amd64,linux/arm64
+release:
+  name: Khoj-AIO
+  profile: changelog-version
+  previous_tag_command: latest-aio-tag
+upstream:
+  name: Khoj
+  digest_arg: UPSTREAM_IMAGE_DIGEST
+template:
+  xml_paths:
+  - khoj-aio.xml
+  generated: false
+catalog:
+  published: true
+  assets:
+  - source: khoj-aio.xml
+    target: khoj-aio.xml
+tests:
+  unit: tests/unit tests/template
+  integration: tests/integration -m integration
+  checkout_submodules: false
