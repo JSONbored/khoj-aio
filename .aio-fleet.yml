@@ -13,17 +13,88 @@ release:
   previous_tag_command: latest-aio-tag
 upstream:
   name: Khoj
+  version_key: UPSTREAM_VERSION
   digest_arg: UPSTREAM_IMAGE_DIGEST
 template:
   xml_paths:
-  - khoj-aio.xml
+    - khoj-aio.xml
   generated: false
 catalog:
   published: true
   assets:
-  - source: khoj-aio.xml
-    target: khoj-aio.xml
+    - source: khoj-aio.xml
+      target: khoj-aio.xml
 tests:
-  unit: tests/unit tests/template
+  unit: tests/template
   integration: tests/integration -m integration
   checkout_submodules: false
+validation:
+  required_targets:
+    - /root/.cache/huggingface
+    - /root/.cache/torch/sentence_transformers
+    - /root/.khoj
+    - /var/lib/postgresql/data
+    - /var/run/docker.sock
+    - "42110"
+    - ANTHROPIC_API_KEY
+    - AWS_ACCESS_KEY
+    - AWS_IMAGE_UPLOAD_BUCKET
+    - AWS_SECRET_KEY
+    - AWS_USER_UPLOADED_IMAGES_BUCKET_NAME
+    - E2B_API_KEY
+    - E2B_TEMPLATE
+    - ELEVEN_LABS_API_KEY
+    - EXA_API_KEY
+    - EXA_API_URL
+    - FIRECRAWL_API_KEY
+    - FIRECRAWL_API_URL
+    - GEMINI_API_KEY
+    - GOOGLE_CLIENT_ID
+    - GOOGLE_CLIENT_SECRET
+    - GOOGLE_SEARCH_API_KEY
+    - GOOGLE_SEARCH_ENGINE_ID
+    - GUNICORN_GRACEFUL_TIMEOUT
+    - GUNICORN_KEEP_ALIVE
+    - GUNICORN_TIMEOUT
+    - GUNICORN_WORKERS
+    - KHOJ_ADMIN_EMAIL
+    - KHOJ_ADMIN_PASSWORD
+    - KHOJ_ALLOWED_DOMAIN
+    - KHOJ_ANONYMOUS_MODE
+    - KHOJ_AUTO_READ_WEBPAGE
+    - KHOJ_CDP_URL
+    - KHOJ_DEBUG
+    - KHOJ_DEFAULT_CHAT_MODEL
+    - KHOJ_DJANGO_SECRET_KEY
+    - KHOJ_DOMAIN
+    - KHOJ_EXTRA_ARGS
+    - KHOJ_HOST
+    - KHOJ_LLM_SEED
+    - KHOJ_NON_INTERACTIVE
+    - KHOJ_NO_HTTPS
+    - KHOJ_OPERATOR_ENABLED
+    - KHOJ_OPERATOR_ITERATIONS
+    - KHOJ_RESEARCH_ITERATIONS
+    - KHOJ_SEARXNG_URL
+    - KHOJ_TELEMETRY_DISABLE
+    - KHOJ_TERRARIUM_URL
+    - KHOJ_USE_INTERNAL_POSTGRES
+    - NOTION_OAUTH_CLIENT_ID
+    - NOTION_OAUTH_CLIENT_SECRET
+    - NOTION_REDIRECT_URI
+    - OLOSTEP_API_KEY
+    - OLOSTEP_API_URL
+    - OPENAI_API_KEY
+    - OPENAI_BASE_URL
+    - POSTGRES_DB
+    - POSTGRES_HOST
+    - POSTGRES_PASSWORD
+    - POSTGRES_PORT
+    - POSTGRES_USER
+    - RESEND_API_KEY
+    - RESEND_AUDIENCE_ID
+    - RESEND_EMAIL
+    - SERPER_DEV_API_KEY
+    - TWILIO_ACCOUNT_SID
+    - TWILIO_AUTH_TOKEN
+    - TWILIO_VERIFICATION_SID

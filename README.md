@@ -53,13 +53,12 @@ The wrapper still defaults to the internal bundled database and a minimal beginn
 ## Publishing and Releases
 
 - Wrapper releases use the upstream version plus an AIO revision, such as `2.0.0-beta.28-aio.1`.
-- The repo monitors upstream releases and image digest changes through [upstream.toml](upstream.toml) and [scripts/check-upstream.py](scripts/check-upstream.py).
-- Release notes are generated with `git-cliff`.
-- The Unraid template `<Changes>` block is synced from `CHANGELOG.md` during release preparation.
+- Upstream monitoring, release preparation, registry publishing, and catalog sync are owned by `aio-fleet` from `.aio-fleet.yml`.
+- Changelog generation and XML `<Changes>` sync are run centrally by `aio-fleet` during release preparation.
 - `main` publishes `latest`, the pinned upstream version tag, an explicit AIO packaging line tag, and `sha-<commit>`.
 - Publish jobs require Docker Hub credentials and push the CA-facing Docker Hub tags directly.
 
-See [docs/releases.md](docs/releases.md) for the release workflow details.
+See [docs/releases.md](docs/releases.md) for the central release process details.
 
 ## Validation
 
