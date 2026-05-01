@@ -20,7 +20,7 @@ When a build-related change lands on `main`, the CI workflow publishes:
 
 Release commits also publish the exact immutable wrapper release tag, for example `2.0.0-beta.28-aio.1`. Ordinary `main` pushes do not overwrite that release tag.
 
-If Docker Hub credentials are configured, the same publish job pushes the matching tags to Docker Hub in parallel with GHCR.
+Publish jobs require Docker Hub credentials and push the matching tags to Docker Hub directly.
 
 ## Template sync behavior
 
