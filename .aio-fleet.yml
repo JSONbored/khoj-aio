@@ -15,6 +15,19 @@ upstream:
   name: Khoj
   version_key: UPSTREAM_VERSION
   digest_arg: UPSTREAM_IMAGE_DIGEST
+  monitor:
+    - component: aio
+      name: Khoj
+      source: github-releases
+      repo: khoj-ai/khoj
+      image: khoj-ai/khoj
+      digest_source: ghcr
+      dockerfile: Dockerfile
+      version_key: UPSTREAM_VERSION
+      digest_key: UPSTREAM_IMAGE_DIGEST
+      stable_only: false
+      strategy: pr
+      release_notes_url: https://github.com/khoj-ai/khoj/releases
 template:
   xml_paths:
     - khoj-aio.xml
