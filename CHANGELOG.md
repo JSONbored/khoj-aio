@@ -2,48 +2,95 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.0.0-beta.28-aio.3](https://github.com/JSONbored/khoj-aio/releases/tag/2.0.0-beta.28-aio.3) - 2026-04-25
+## 2.0.0-beta.28-aio.4 - 2026-05-05
 
 ### CI
 
-- Consolidate validation into pytest suite by @JSONbored
-- Optimize pytest gating and Trunk uploads by @JSONbored
-- Preserve changelog history and publish release commits by @JSONbored
-- Capture integration diagnostics on pytest failure by @JSONbored
-- Remove automation flag and align publish flow by @JSONbored
-- Centralize trunk config and gate release tags by @JSONbored
-- Accept squash release titles by @JSONbored
-- Pin package tags to release targets by @JSONbored
-- Fetch history for release tag lookup by @JSONbored
-- Consolidate pytest workflow steps by @JSONbored
-
-### Dependency Updates
-
-- Update pytest and trunk analytics uploader by @JSONbored
+- Use shared AIO build workflow
+- Centralize release workflows
+- Repin shared workflow ref
+- Centralize workflow drift checks
+- Repin caller workflows
+- Pin shared validation policy
+- Use shared AIO workflows
+- Sync workflow path filters
+- Sync catalog publication state
+- Pin publish helper workflow fix
+- Pin Docker Hub primary workflow
+- Pin control-plane workflow foundation
 
 ### Documentation
 
-- Fix khoj-aio category metadata by @JSONbored
+- Document central app test dependencies
+
+### Features
+
+- Expose manual publish targets
 
 ### Fixes
 
-- Preserve history and harden full flow by @JSONbored
-- Align image tags with release versions by @JSONbored
-- Make derived repo validator portable by @JSONbored
-- Use workflow file selector for CI checks by @JSONbored
-- Classify local action changes by @JSONbored
-- Fail fast on init errors by @JSONbored
+- Sync shared validation and trunk cleanup
+- Sync release shim path fallback
 
-### Other Changes
+### Maintenance
 
-- Merge branch 'main' into codex/fix-unraid-ca-categories by @JSONbored
-- Update CI to run pytest and simplify release prep by @JSONbored
-- Merge branch 'main' into codex/release-target-immutability by @JSONbored
+- Sync shared repository boilerplate
+- Move shared automation to aio-fleet
+- Declare aio-fleet ownership
+
+### Refactors
+
+- Use shared derived repo validation
+- Use shared release helper shim
+- Remove legacy shared contract tests
 
 ### Tests
 
-- Use docker volumes for runtime persistence by @JSONbored
-- Cover action and container contracts by @JSONbored
+- Repin workflow expectation
+- Use shared template and runtime helpers
+
+## 2.0.0-beta.28-aio.3 - 2026-04-25
+
+### CI
+
+- Consolidate validation into pytest suite
+- Optimize pytest gating and Trunk uploads
+- Preserve changelog history and publish release commits
+- Capture integration diagnostics on pytest failure
+- Remove automation flag and align publish flow
+- Centralize trunk config and gate release tags
+- Accept squash release titles
+- Pin package tags to release targets
+- Fetch history for release tag lookup
+- Consolidate pytest workflow steps
+
+### Dependency Updates
+
+- Update pytest and trunk analytics uploader
+
+### Documentation
+
+- Fix khoj-aio category metadata
+
+### Fixes
+
+- Preserve history and harden full flow
+- Align image tags with release versions
+- Make derived repo validator portable
+- Use workflow file selector for CI checks
+- Classify local action changes
+- Fail fast on init errors
+
+### Other Changes
+
+- Merge branch 'main' into codex/fix-unraid-ca-categories
+- Update CI to run pytest and simplify release prep
+- Merge branch 'main' into codex/release-target-immutability
+
+### Tests
+
+- Use docker volumes for runtime persistence
+- Cover action and container contracts
 
 ## 2.0.0-beta.28-aio.2 - 2026-04-17
 
@@ -86,6 +133,7 @@ All notable changes to this project will be documented in this file.
 - Reduce smoke-test CI usage
 - Standardize funding and security docs
 - Add standard community templates
+- Consolidate CI workflows
 - Consolidate CI workflows
 - Merge main into consolidate-ci-workflows
 - Update docker/setup-qemu-action action to v4
