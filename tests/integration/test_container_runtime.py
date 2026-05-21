@@ -10,8 +10,10 @@ from tests.helpers import (
     container_file_size,
     container_path_exists,
     docker_available,
+    docker_exec,
     docker_volume,
     ensure_pytest_image,
+    read_container_file,
     reserve_host_port,
     run_command,
 )
@@ -45,6 +47,82 @@ def wait_for_http(name: str, host_port: int, timeout: int = 600) -> None:
         time.sleep(2)
 
     raise AssertionError(f"{name} did not become ready.\n{logs(name)}")
+
+
+def wait_for_postgres(name: str, timeout: int = 180) -> None:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        status = run_command(
+            ["docker", "inspect", "-f", "{{.State.Status}}", name],
+            check=False,
+        ).stdout.strip()
+        if status != "running":
+            raise AssertionError(
+                f"{name} stopped before PostgreSQL became ready.\n{logs(name)}"
+            )
+
+        if (
+            docker_exec(
+                name, "pg_isready -h 127.0.0.1 -p 5432 -U khoj", check=False
+            ).returncode
+            == 0
+        ):
+            return
+        time.sleep(2)
+
+    raise AssertionError(f"{name} did not start PostgreSQL.\n{logs(name)}")
+
+
+def wait_for_postgres_major(name: str, major: int, timeout: int = 180) -> None:
+    deadline = time.time() + timeout
+    expected_prefix = str(major)
+    while time.time() < deadline:
+        status = run_command(
+            ["docker", "inspect", "-f", "{{.State.Status}}", name],
+            check=False,
+        ).stdout.strip()
+        if status != "running":
+            raise AssertionError(
+                f"{name} stopped before PostgreSQL reported its version.\n{logs(name)}"
+            )
+
+        result = docker_exec(
+            name,
+            "su postgres -s /bin/sh -c \"psql -tAc 'SHOW server_version_num'\"",
+            check=False,
+        )
+        if result.returncode == 0 and result.stdout.strip().startswith(expected_prefix):
+            return
+        time.sleep(2)
+
+    raise AssertionError(
+        f"{name} did not report PostgreSQL {major} as the running server.\n{logs(name)}"
+    )
+
+
+def seed_postgres_major(pgdata_volume: str, major: int) -> None:
+    run_command(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "--platform",
+            "linux/amd64",
+            "--entrypoint",
+            "/bin/sh",
+            "-v",
+            f"{pgdata_volume}:/var/lib/postgresql/data",
+            IMAGE_TAG,
+            "-lc",
+            (
+                "set -eu; "
+                "install -d -o postgres -g postgres -m 700 /var/lib/postgresql/data; "
+                f"su postgres -s /bin/sh -c '/usr/lib/postgresql/{major}/bin/initdb "
+                "-D /var/lib/postgresql/data --auth-local=peer "
+                "--auth-host=scram-sha-256 >/dev/null'"
+            ),
+        ]
+    )
 
 
 @contextmanager
@@ -111,4 +189,20 @@ def test_happy_path_boot_and_restart() -> None:
             wait_for_http(name, host_port)
             assert (
                 container_file_size(name, "/root/.khoj/aio/generated.env") > 0
+            )  # nosec B101
+
+
+def test_existing_internal_postgres_14_volume_uses_compatible_runtime() -> None:
+    with (
+        docker_volume("khoj-aio-config-pg14") as config_volume,
+        docker_volume("khoj-aio-pg14") as pgdata_volume,
+    ):
+        seed_postgres_major(pgdata_volume, 14)
+
+        with container(config_volume, pgdata_volume) as (name, _host_port):
+            wait_for_postgres(name)
+            wait_for_postgres_major(name, 14)
+            assert (
+                read_container_file(name, "/var/lib/postgresql/data/PG_VERSION").strip()
+                == "14"
             )  # nosec B101
