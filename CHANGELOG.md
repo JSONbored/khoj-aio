@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.0.0-beta.28-aio.5 - 2026-05-21
+
+### Fixes
+
+- Keep PG14 runtime for existing internal volumes
+
 ## 2.0.0-beta.28-aio.4 - 2026-05-05
 
 ### CI

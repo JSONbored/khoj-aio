@@ -30,32 +30,9 @@
 - This image intentionally keeps PostgreSQL bundled because that is the critical first-boot dependency for Khoj on Unraid. Search, sandbox, and provider integrations remain optional advanced add-ons.&#xD;
 - If you expose Khoj outside your LAN, set strong admin credentials, configure [code]KHOJ_DOMAIN[/code] and [code]KHOJ_ALLOWED_DOMAIN[/code] correctly, and strongly consider disabling anonymous mode.&#xD;
 - Upstream currently documents Google OAuth mainly against the prod [code]khoj-cloud[/code] image, so the Google auth variables below should be treated as expert-only and tested carefully in this standard self-host image flow.</Overview>
-  <Changes>### 2026-05-05&#xD;
+  <Changes>### 2026-05-21&#xD;
 - Generated from CHANGELOG.md during release preparation. Do not edit manually.&#xD;
-- Use shared AIO build workflow&#xD;
-- Centralize release workflows&#xD;
-- Repin shared workflow ref&#xD;
-- Centralize workflow drift checks&#xD;
-- Repin caller workflows&#xD;
-- Pin shared validation policy&#xD;
-- Use shared AIO workflows&#xD;
-- Sync workflow path filters&#xD;
-- Sync catalog publication state&#xD;
-- Pin publish helper workflow fix&#xD;
-- Pin Docker Hub primary workflow&#xD;
-- Pin control-plane workflow foundation&#xD;
-- Document central app test dependencies&#xD;
-- Expose manual publish targets&#xD;
-- Sync shared validation and trunk cleanup&#xD;
-- Sync release shim path fallback&#xD;
-- Sync shared repository boilerplate&#xD;
-- Move shared automation to aio-fleet&#xD;
-- Declare aio-fleet ownership&#xD;
-- Use shared derived repo validation&#xD;
-- Use shared release helper shim&#xD;
-- Remove legacy shared contract tests&#xD;
-- Repin workflow expectation&#xD;
-- Use shared template and runtime helpers</Changes>
+- Keep PG14 runtime for existing internal volumes</Changes>
   <Category>AI: Productivity: Tools:Utilities</Category>
   <WebUI>http://[IP]:[PORT:42110]</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/JSONbored/awesome-unraid/main/khoj-aio.xml</TemplateURL>
