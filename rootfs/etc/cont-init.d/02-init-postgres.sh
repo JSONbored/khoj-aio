@@ -22,7 +22,8 @@ if [[ -n ${POSTGRES_HOST-} ]]; then
 	exit 0
 fi
 
-PG_VERSION="$(find /usr/lib/postgresql -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort -V | tail -n1)"
+LATEST_PG_VERSION="$(find /usr/lib/postgresql -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort -V | tail -n1)"
+PG_VERSION="${LATEST_PG_VERSION}"
 PG_BIN="/usr/lib/postgresql/${PG_VERSION}/bin"
 PGDATA="/var/lib/postgresql/data"
 PGUSER="khoj"
@@ -39,6 +40,19 @@ PGPASS_SQL="${PGPASS//\'/\'\'}"
 mkdir -p "${PGDATA}" /run/postgresql
 chown -R postgres:postgres "${PGDATA}" /run/postgresql
 chmod 700 "${PGDATA}"
+
+if [[ -f "${PGDATA}/PG_VERSION" ]]; then
+	DATA_PG_VERSION="$(head -n1 "${PGDATA}/PG_VERSION" | tr -d '[:space:]')"
+	if [[ -n ${DATA_PG_VERSION} ]]; then
+		if [[ -x "/usr/lib/postgresql/${DATA_PG_VERSION}/bin/postgres" ]]; then
+			PG_VERSION="${DATA_PG_VERSION}"
+			PG_BIN="/usr/lib/postgresql/${PG_VERSION}/bin"
+		else
+			echo "[khoj-aio] Existing PGDATA requires PostgreSQL ${DATA_PG_VERSION}, but no compatible server is installed." >&2
+			exit 1
+		fi
+	fi
+fi
 
 if [[ -z "$(find "${PGDATA}" -mindepth 1 -maxdepth 1 2>/dev/null | head -n1)" ]]; then
 	echo "[khoj-aio] Initializing internal PostgreSQL database..."
