@@ -33,12 +33,16 @@
   <Changes>### 2026-05-21&#xD;
 - Generated from CHANGELOG.md during release preparation. Do not edit manually.&#xD;
 - Keep PG14 runtime for existing internal volumes</Changes>
-  <Category>AI: Productivity: Tools:Utilities</Category>
+  <Category>AI Productivity Tools:Utilities</Category>
   <WebUI>http://[IP]:[PORT:42110]</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/JSONbored/awesome-unraid/main/khoj-aio.xml</TemplateURL>
+  <ReadMe>https://github.com/JSONbored/khoj-aio#readme</ReadMe>
   <Icon>https://raw.githubusercontent.com/JSONbored/awesome-unraid/main/icons/khoj.png</Icon>
   <ExtraSearchTerms>ai second-brain notes documents rag knowledge-base search ollama anthropic gemini openai</ExtraSearchTerms>
   <Requires>For public internet exposure, do not leave anonymous mode enabled unless you intentionally accept that risk. Set strong admin credentials and configure [code]KHOJ_DOMAIN[/code] / [code]KHOJ_ALLOWED_DOMAIN[/code] before remote access.</Requires>
+  <Screenshot>https://raw.githubusercontent.com/JSONbored/awesome-unraid/main/screenshots/khoj-aio/01-home.png</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/JSONbored/awesome-unraid/main/screenshots/khoj-aio/02-chat.png</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/JSONbored/awesome-unraid/main/screenshots/khoj-aio/03-settings.png</Screenshot>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
