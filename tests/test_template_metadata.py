@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from defusedxml import ElementTree as ET
+from xml.etree import ElementTree as ET  # nosec B405
 
 from tests.conftest import REPO_ROOT
 
 
 def test_ca_metadata_uses_current_categories_and_discovery_fields() -> None:
-    root = ET.parse(REPO_ROOT / "khoj-aio.xml").getroot()
+    root = ET.parse(REPO_ROOT / "khoj-aio.xml").getroot()  # nosec B314
 
     assert root.findtext("Category") == "AI Productivity Tools:Utilities"  # nosec B101
     assert (
