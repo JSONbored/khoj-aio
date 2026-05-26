@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.0.0-beta.28-aio.6 - 2026-05-26
+
+### Documentation
+
+- Normalize CA metadata
+
+### Fixes
+
+- Remove undeclared defusedxml dependency
+
 ## 2.0.0-beta.28-aio.5 - 2026-05-21
 
 ### Fixes
