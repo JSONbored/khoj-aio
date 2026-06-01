@@ -37,10 +37,22 @@ catalog:
   assets:
     - source: khoj-aio.xml
       target: khoj-aio.xml
+    - source: screenshots/khoj-aio/01-home.png
+      target: screenshots/khoj-aio/01-home.png
+    - source: screenshots/khoj-aio/02-chat.png
+      target: screenshots/khoj-aio/02-chat.png
+    - source: screenshots/khoj-aio/03-settings.png
+      target: screenshots/khoj-aio/03-settings.png
 tests:
   integration: tests/integration -m integration
   checkout_submodules: false
 validation:
+  required_text_fields:
+    - ReadMe
+  exact_category_tokens:
+    - AI
+    - Productivity
+    - Tools:Utilities
   required_targets:
     - /root/.cache/huggingface
     - /root/.cache/torch/sentence_transformers
