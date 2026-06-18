@@ -13,10 +13,10 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # hadolint ignore=DL3002
 USER root
 
-# hadolint ignore=DL3008,SC2086
 # Shared, pinned s6-overlay from the fleet aio-base overlay.
 COPY --from=aio-base /aio-overlay/ /
 
+# hadolint ignore=DL3008,SC2086
 RUN aio-harden pre && \
     DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     curl \
