@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.0.0-beta.28-aio.7 - 2026-06-18
+
+### Maintenance
+
+- Refresh fleet manifest contract
+
+### Refactors
+
+- Migrate to the shared aio-base s6 overlay (#66)
+
+### Tests
+
+- Use shared app test helpers
+
 ## 2.0.0-beta.28-aio.6 - 2026-05-26
 
 ### Documentation
