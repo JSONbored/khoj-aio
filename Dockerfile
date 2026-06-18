@@ -3,19 +3,21 @@
 # checkov:skip=CKV_DOCKER_8:The wrapper needs root for s6 init, package install, and managed internal PostgreSQL startup.
 ARG UPSTREAM_VERSION=2.0.0-beta.28
 ARG UPSTREAM_IMAGE_DIGEST=sha256:eb2e44669df44b51cb206b394dc0a00c782ac152dda02c97c9e3dac3d643dbb4
+FROM jsonbored/aio-base:s6-3.2.1.0@sha256:07db479a01a95ba28480b4605f5d1cc8bedb574b77cf167ee46e29b9558fee90 AS aio-base
+
 FROM ghcr.io/khoj-ai/khoj@${UPSTREAM_IMAGE_DIGEST}
 
-ARG S6_OVERLAY_VERSION=3.1.6.2
-ARG TARGETARCH
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # hadolint ignore=DL3002
 USER root
 
+# Shared, pinned s6-overlay from the fleet aio-base overlay.
+COPY --from=aio-base /aio-overlay/ /
+
 # hadolint ignore=DL3008,SC2086
-RUN find /etc/apt -type f \( -name '*.list' -o -name '*.sources' \) -exec sed -i 's|http://|https://|g' {} + && \
-    printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\n' > /etc/apt/apt.conf.d/80-retries && \
+RUN aio-harden pre && \
     DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     curl \
     xz-utils \
@@ -35,15 +37,6 @@ RUN find /etc/apt -type f \( -name '*.list' -o -name '*.sources' \) -exec sed -i
     postgresql-15-pgvector && \
     apt-mark manual postgresql-14 postgresql-client-14 postgresql-14-pgvector postgresql-15 postgresql-client-15 postgresql-15-pgvector postgresql-common postgresql-client-common && \
     python3 -m pip install --no-cache-dir --upgrade pillow==12.2.0 && \
-    curl -L -o /tmp/s6-overlay-noarch.tar.xz https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz && \
-    tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz && \
-    case "${TARGETARCH}" in \
-      amd64) S6_ARCH="x86_64" ;; \
-      arm64) S6_ARCH="aarch64" ;; \
-      *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
-    esac && \
-    curl -L -o /tmp/s6-overlay-${S6_ARCH}.tar.xz https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz && \
-    tar -C / -Jxpf /tmp/s6-overlay-${S6_ARCH}.tar.xz && \
     mkdir -p /root/.khoj /var/lib/postgresql/data /root/.cache/huggingface /root/.cache/torch/sentence_transformers /run/postgresql && \
     chown -R postgres:postgres /var/lib/postgresql /run/postgresql && \
     DEBIAN_FRONTEND=noninteractive apt-get purge -y \
