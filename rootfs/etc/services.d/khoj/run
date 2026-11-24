@@ -20,7 +20,20 @@ if [ -z "${POSTGRES_HOST:-}" ]; then
             export POSTGRES_PORT="${POSTGRES_PORT:-5432}"
             export POSTGRES_DB="${POSTGRES_DB:-khoj}"
             export POSTGRES_USER="${POSTGRES_USER:-khoj}"
+            if [[ ${POSTGRES_DB} == postgres && ${POSTGRES_USER} == postgres && ! -e /run/khoj-aio-legacy-postgres ]]; then
+                export POSTGRES_DB=khoj POSTGRES_USER=khoj
+            fi
             export POSTGRES_PASSWORD="${KHOJ_INTERNAL_POSTGRES_PASSWORD:?Missing generated internal PostgreSQL password}"
+            deadline=$((SECONDS + 60))
+            until PGPASSWORD="${POSTGRES_PASSWORD}" PGCONNECT_TIMEOUT=2 psql -Xw -h "${POSTGRES_HOST}" \
+                -p "${POSTGRES_PORT}" -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -Atqc 'SELECT 1' >/dev/null 2>&1; do
+                if (( SECONDS >= deadline )); then
+                    echo "[khoj-aio] Could not authenticate to the bundled PostgreSQL database as ${POSTGRES_USER}." >&2
+                    exit 1
+                fi
+                sleep 1
+            done
+            echo "[khoj-aio] Authenticated to the bundled database ${POSTGRES_DB} as ${POSTGRES_USER}."
             ;;
     esac
 fi
@@ -29,15 +42,6 @@ export USE_EMBEDDED_DB="false"
 export KHOJ_ADMIN_EMAIL="${KHOJ_ADMIN_EMAIL:-admin@khoj.local}"
 export KHOJ_HOST="${KHOJ_HOST:-0.0.0.0}"
 export KHOJ_PORT="${KHOJ_PORT:-42110}"
-
-if [ "${POSTGRES_HOST:-}" = "127.0.0.1" ]; then
-    for _ in $(seq 1 60); do
-        if pg_isready -h 127.0.0.1 -p "${POSTGRES_PORT}" -U "${POSTGRES_USER}" >/dev/null 2>&1; then
-            break
-        fi
-        sleep 1
-    done
-fi
 
 args=(
     "--host=${KHOJ_HOST}"
