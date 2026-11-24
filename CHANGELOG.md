@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.0.0-beta.28-aio.8 - 2026-11-24
+
+### Fixes
+
+- Authenticate Khoj against the initialized bundled database (#69)
+
 ## 2.0.0-beta.28-aio.7 - 2026-06-18
 
 ### Maintenance
