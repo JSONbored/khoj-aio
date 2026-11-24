@@ -143,6 +143,10 @@ def container(config_volume: str, pgdata_volume: str):
         f"{config_volume}:/root/.khoj",
         "-v",
         f"{pgdata_volume}:/var/lib/postgresql/data",
+        "-e",
+        "POSTGRES_DB=postgres",
+        "-e",
+        "POSTGRES_USER=postgres",
         IMAGE_TAG,
     ]
     run_command(command)
@@ -159,7 +163,7 @@ def build_image() -> None:
     ensure_pytest_image(IMAGE_TAG)
 
 
-def test_happy_path_boot_and_restart() -> None:
+def test_ca_defaults_use_managed_database_and_preserve_legacy_installs() -> None:
     with (
         docker_volume("khoj-aio-config") as config_volume,
         docker_volume("khoj-aio-pg") as pgdata_volume,
@@ -172,21 +176,32 @@ def test_happy_path_boot_and_restart() -> None:
             assert container_path_exists(
                 name, "/var/lib/postgresql/data/PG_VERSION"
             )  # nosec B101
-            run_command(
-                [
-                    "docker",
-                    "exec",
-                    name,
-                    "sh",
-                    "-lc",
-                    "pg_isready -h 127.0.0.1 -p 5432 -U khoj",
-                ]
+            docker_exec(
+                name,
+                ". /root/.khoj/aio/generated.env && "
+                'PGPASSWORD="$KHOJ_INTERNAL_POSTGRES_PASSWORD" psql -Xw -h 127.0.0.1 '
+                "-U khoj -d khoj -c 'SELECT count(*) FROM django_migrations'",
+            )
+            # Recreate a previously working installation that migrated in postgres.
+            docker_exec(
+                name,
+                "set -eu\n"
+                ". /root/.khoj/aio/generated.env\n"
+                "export KHOJ_INTERNAL_POSTGRES_PASSWORD\n"
+                "runuser -u postgres -- pg_dump -d khoj -f /tmp/khoj-legacy.sql\n"
+                "runuser -u postgres -- psql -X -v ON_ERROR_STOP=1 -d postgres "
+                "-f /tmp/khoj-legacy.sql >/dev/null\n"
+                "runuser -u postgres -- psql -X -v ON_ERROR_STOP=1 -d postgres <<'SQL'\n"
+                "\\getenv legacy_password KHOJ_INTERNAL_POSTGRES_PASSWORD\n"
+                "ALTER ROLE postgres PASSWORD :'legacy_password';\n"
+                "SQL",
             )
             first_logs = logs(name)
-            assert "Starting Khoj on" in first_logs  # nosec B101
+            assert "Authenticated to the bundled database khoj as khoj." in first_logs  # nosec B101
 
             run_command(["docker", "restart", name])
             wait_for_http(name, host_port)
+            assert "Authenticated to the bundled database postgres as postgres." in logs(name)  # nosec B101
             assert (
                 container_file_size(name, "/root/.khoj/aio/generated.env") > 0
             )  # nosec B101

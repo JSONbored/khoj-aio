@@ -71,4 +71,15 @@ su postgres -s /bin/sh -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='
 
 su postgres -s /bin/sh -c "psql -d \"${PGDB}\" -c \"CREATE EXTENSION IF NOT EXISTS vector;\" >/dev/null"
 
+# Older CA templates pass postgres/postgres even for the bundled database.
+# Keep a working installation that already migrated there on the same database.
+legacy_marker="/run/khoj-aio-legacy-postgres"
+rm -f "${legacy_marker}"
+if [[ ${POSTGRES_DB:-khoj} == postgres && ${POSTGRES_USER:-khoj} == postgres ]]; then
+	has_migrations="$(su postgres -s /bin/sh -c "psql -XAt -v ON_ERROR_STOP=1 -d postgres -c \"SELECT to_regclass('public.django_migrations') IS NOT NULL\"")"
+	if [[ ${has_migrations} == t ]]; then
+		touch "${legacy_marker}"
+	fi
+fi
+
 su postgres -s /bin/sh -c "\"${PG_BIN}/pg_ctl\" -D \"${PGDATA}\" -m fast -w stop >/dev/null"
