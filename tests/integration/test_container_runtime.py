@@ -197,11 +197,16 @@ def test_ca_defaults_use_managed_database_and_preserve_legacy_installs() -> None
                 "SQL",
             )
             first_logs = logs(name)
-            assert "Authenticated to the bundled database khoj as khoj." in first_logs  # nosec B101
+            assert (
+                "Authenticated to the bundled database khoj as khoj." in first_logs
+            )  # nosec B101
 
             run_command(["docker", "restart", name])
             wait_for_http(name, host_port)
-            assert "Authenticated to the bundled database postgres as postgres." in logs(name)  # nosec B101
+            assert (
+                "Authenticated to the bundled database postgres as postgres."
+                in logs(name)
+            )  # nosec B101
             assert (
                 container_file_size(name, "/root/.khoj/aio/generated.env") > 0
             )  # nosec B101
